@@ -1,0 +1,39 @@
+{
+  "name": "project3",
+  "version": "0.1.0",
+  "description": "Multiplayer Space Shooter",
+  "main": "server.js",
+  "scripts": {
+    "start": "if-env NODE_ENV=production && npm run start:prod || npm run start:dev",
+    "start:prod": "node server.js",
+    "start:dev": "concurrently \"nodemon --ignore 'client/*'\" \"npm run client\"",
+    "client": "cd client && npm run start",
+    "seed": "node scripts/seedDB.js",
+    "install": "cd client && npm install",
+    "build": "cd client && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/james-ritchey/Project3.git"
+  },
+  "keywords": [
+    "socket",
+    "multiplayer",
+    "shoooter",
+    "mern"
+  ],
+  "author": "Chris Killen, James Ritchey, Yobany Perez, Mike Feller",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/james-ritchey/Project3/issues"
+  },
+  "homepage": "https://github.com/james-ritchey/Project3#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.16.4",
+    "express-session": "^1.15.6",
+    "mongoose": "^5.4.16",
+    "passport": "^0.4.0",
+    "passport-local": "^1.0.0"
+  }
+}
