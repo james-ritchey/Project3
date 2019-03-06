@@ -18,6 +18,7 @@ var config = {
   };
    
   var game = new Phaser.Game(config);
+  var fireButton;
    
   function preload() {
     this.load.image('ship', 'assets/player_ship_orange.png');
@@ -29,6 +30,7 @@ var config = {
     var self = this;
     this.socket = io();
     this.otherPlayers = this.physics.add.group();
+
     this.socket.on('currentPlayers', function (players) {
       Object.keys(players).forEach(function (id) {
         if (players[id].playerId === self.socket.id) {
@@ -38,9 +40,11 @@ var config = {
         }
       });
     });
+
     this.socket.on('newPlayer', function (playerInfo) {
       addOtherPlayers(self, playerInfo);
     });
+
     this.socket.on('disconnect', function (playerId) {
       self.otherPlayers.getChildren().forEach(function (otherPlayer) {
         if (playerId === otherPlayer.playerId) {
@@ -50,6 +54,7 @@ var config = {
     });
 
     this.cursors = this.input.keyboard.createCursorKeys();
+
 
     this.socket.on('playerMoved', function (playerInfo) {
       self.otherPlayers.getChildren().forEach(function (otherPlayer) {
@@ -77,22 +82,16 @@ var config = {
     });
 
   }
+
+  var playerSpeed = 4;
    
   function update() {
     if (this.ship) {
       if (this.cursors.left.isDown) {
-        this.ship.setAngularVelocity(-150);
+        this.ship.x = this.ship.x - playerSpeed;
       } else if (this.cursors.right.isDown) {
-        this.ship.setAngularVelocity(150);
-      } else {
-        this.ship.setAngularVelocity(0);
-      }
-    
-      if (this.cursors.up.isDown) {
-        this.physics.velocityFromRotation(this.ship.rotation + 1.5, 100, this.ship.body.acceleration);
-      } else {
-        this.ship.setAcceleration(0);
-      }
+        this.ship.x = this.ship.x + playerSpeed;
+      } 
       
       // emit player movement
       var x = this.ship.x;
