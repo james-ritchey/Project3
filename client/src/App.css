@@ -3,13 +3,18 @@
 }
 
 .App-logo {
-  animation: App-logo-spin infinite 20s linear;
+  /* animation: App-logo-spin infinite 20s linear;
   height: 40vmin;
   pointer-events: none;
+  background-size: 36.588px 300px; */
+}
+
+.splash-ship {
+  margin-bottom: 40px;
 }
 
 .App-header {
-  background-color: #282c34;
+  background: linear-gradient(to right bottom, #111C26, #302226) fixed;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -17,10 +22,6 @@
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
-}
-
-.App-link {
-  color: #61dafb;
 }
 
 @keyframes App-logo-spin {
