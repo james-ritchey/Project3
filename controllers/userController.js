@@ -2,16 +2,16 @@ const db = require('../models');
 
 // Defining methods for the booksController
 module.exports = {
-  findOne: function(req, res) { 
+  findOne: function({ query }, cb) { 
     db.User
-      .findOne(req.query)
-      .then((dbModel) => res(null, dbModel))
-      .catch(err => res.status(422).json(err));
+      .findOne(query)
+      .then((dbModel) => cb(null, dbModel))
+      .catch(cb);
   },
-  create: function(req, res) {
+  create: function(user, cb) {
     db.User
-      .create(req.body)
-      .then(dbModel => res(null, dbModel))
-      .catch(err => res.status(422).json(err));
+      .create(user)
+      .then(dbModel => cb(null, dbModel))
+      .catch(cb);
   },
 };
