@@ -8,12 +8,12 @@ export const Form = ({ onSubmit }) => {
         <input className="form-control" id="name" />
       </div>
       <div className="form-group">
-        <label htmlFor="email">Password</label>
+        <label htmlFor="password">Password</label>
         <input
-          type="email"
+          type="password"
           className="form-control"
-          id="email"
-          placeholder="name@example.com"
+          id="password"
+          placeholder=""
         />
       </div>
       <div className="form-group">

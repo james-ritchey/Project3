@@ -4,12 +4,15 @@ import usersNav from "../../users_nav.svg";
 import profileNav from "../../profile_nav.svg";
 import Container from "../Container";
 
+import User from "../../api/Users"
+
 const Nav = () => {
     const triggerText = 'Open form';
     const onSubmit = (event) => {
     event.preventDefault(event);
-    console.log(event.target.name.value);
-    console.log(event.target.email.value);
+    const { name, password } = event.target;
+    User.login(name.value, password.value);
+    console.log(event.target.password.value);
   };
     return (
         <nav className="navbar">

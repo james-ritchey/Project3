@@ -8,7 +8,7 @@ const Users = {
     axios.post(`${userURL}/login`, {
       username: username,
       password: password
-    }).then(test => console.log(test));
+    }).then(test => console.log("Success"));
   },
   signup: (username, password) => {
     axios.post(`${userURL}/signup`, {
