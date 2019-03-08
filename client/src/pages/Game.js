@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import GameComponent from "../components/Game";
 //import { Link } from "react-router-dom";
 
 class Game extends Component {
@@ -8,6 +9,7 @@ class Game extends Component {
   render() {
     return (
       <div>
+        <GameComponent />
       </div>
     )
   }

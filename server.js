@@ -6,8 +6,8 @@ const session = require('express-session');
 
 const PORT = 4000;
 
-const app = express();
 
+const app = express();
 
 const mongoDB = 'mongodb://127.0.0.1/project3';
 mongoose.connect(mongoDB, { useNewUrlParser: true });
@@ -33,8 +33,15 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 //Load in passport config
 require('./config/passport.js')(passport);
 
+var server = require('http').Server(app);
+var io = require('socket.io').listen(server);
+io.origins("http://localhost:* http://127.0.0.1:*");
+io.on("connection", (socket) => {
+  require('./routes/sockets')(socket, io);
+})
 
-app.listen(PORT, (err) => {
+
+server.listen(PORT, (err) => {
   if (err) throw err;
 
   console.log(`Backend on port ${PORT}`);
