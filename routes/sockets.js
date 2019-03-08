@@ -1,4 +1,14 @@
-function(socket) {
+var players = {};
+var game_config = require("../public/game_config.json");
+var star = {
+  x: Math.floor(Math.random() * 700) + 50,
+  y: Math.floor(Math.random() * 500) + 50
+};
+var scores = {
+  blue: 0,
+  red: 0
+};
+var sockets = function(socket) {
     console.log('a user connected');
     // create a new player and add it to our players object
     players[socket.id] = {
@@ -50,4 +60,7 @@ function(socket) {
   
     socket.on('playerFire', function(data) {
       socket.broadcast.emit('playerFired', data)
-    })
+    });
+}
+
+module.exports = sockets;
