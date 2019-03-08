@@ -1,19 +1,20 @@
-import React, { Component } from 'react';
-import voyagerLogo from './voyager_logo.svg';
-import coverShip from './cover_ship.svg';
+import React, { Component } from "react";
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import './App.css';
-import Nav from './components/Navbar';
+import Login from './pages/Login';
+import Game from './pages/Game';
 
 class App extends Component {
   render() {
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={coverShip} className="cover-ship" alt="ship" />
-          <img src={voyagerLogo} className="App-logo" alt="logo" />
-        <Nav />
-        </header>
+      <Router>
+      <div>
+        <Switch>
+          <Route exact path="/" component={Login} />
+          <Route exact path="/game" component={Game} />
+        </Switch>
       </div>
+    </Router>
     );
   }
 }
