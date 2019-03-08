@@ -3,6 +3,7 @@ var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io').listen(server);
 var players = {};
+var game_config = require("./public/game_config.json");
 
 var star = {
   x: Math.floor(Math.random() * 700) + 50,
@@ -19,13 +20,13 @@ app.get('/', function (req, res) {
   res.sendFile(__dirname + '/client/index.html');
 });
 
-io.on('connection', function (socket) {
+io.on('connection', function(socket) {
   console.log('a user connected');
   // create a new player and add it to our players object
   players[socket.id] = {
     rotation: 0,
-    x: Math.floor(Math.random() * 700) + 50,
-    y: Math.floor(Math.random() * 500) + 50,
+    x: game_config.width / 2,
+    y: game_config.height - 50,
     playerId: socket.id,
     team: (Math.floor(Math.random() * 2) == 0) ? 'red' : 'blue'
   };
@@ -68,6 +69,10 @@ io.on('connection', function (socket) {
     io.emit('starLocation', star);
     io.emit('scoreUpdate', scores);
   });
+
+  socket.on('playerFire', function(data) {
+    socket.broadcast.emit('playerFired', data)
+  })
 
 });
 
