@@ -14,6 +14,7 @@ export const Modal = ({
     formBtntext
   }) => {
     return ReactDOM.createPortal(
+      
       <FocusTrap>
         <aside
           tag="aside"
@@ -40,7 +41,7 @@ export const Modal = ({
               </svg>
             </button>
             <div className="modal-body">
-              <Form onSubmit={onSubmit} formBtntext="login" />
+              <Form onSubmit={onSubmit} formBtntext={formBtntext} />
             </div>
           </div>
         </aside>

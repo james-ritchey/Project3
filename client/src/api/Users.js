@@ -4,17 +4,17 @@ import config from '../config/config';
 
 const userURL = `${config.backendURL}/api/users`;
 const Users = {
-  login: (username, password) => {
+  login: (username, password, cb) => {
     axios.post(`${userURL}/login`, {
       username: username,
       password: password
-    }).then(test => console.log("Success"));
+    }).then(cb());
   },
-  signup: (username, password) => {
+  signup: (username, password, cb) => {
     axios.post(`${userURL}/signup`, {
       username: username,
       password: password
-    }).then(test => console.log(test));
+    }).then(cb());
   }
   
 }
