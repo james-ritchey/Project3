@@ -1,9 +1,8 @@
 import React from 'react';
-import loginNav from "../../login_nav.svg";
 
-const Trigger = ({ triggerText, buttonRef, showModal }) => {
+const Trigger = ({ src, className, triggerText, buttonRef, showModal }) => {
   return (
-      <img src={loginNav} className="login-nav" alt="profile" 
+      <img src={src} className={className} alt="profile" 
       ref={buttonRef} onClick={showModal}/>
   );
 };

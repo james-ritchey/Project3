@@ -8,18 +8,10 @@
     color: white;
 }
 
-.users-nav {
+.users-nav, .login-nav, .signup-nav, .profile-nav {
     cursor: pointer;
 }
 
-.login-nav {
-    cursor: pointer;
-}
-
-.profile-nav {
-    cursor: pointer;
-}
-
-.login-nav:hover, .users-nav:hover, .profile-nav:hover {
+.login-nav:hover, .users-nav:hover, .signup-nav:hover, .profile-nav:hover {
     filter: blur(5px);
 }

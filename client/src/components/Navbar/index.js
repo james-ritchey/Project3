@@ -3,6 +3,8 @@ import "./Navbar.css";
 import usersNav from "../../users_nav.svg";
 import profileNav from "../../profile_nav.svg";
 import Container from "../Container";
+import loginNav from "../../login_nav.svg";
+import signupNav from "../../signup_nav.svg";
 
 import User from "../../api/Users"
 
@@ -17,7 +19,10 @@ const Nav = () => {
     return (
         <nav className="navbar">
         <img src={usersNav} className="users-nav" alt="users" />
-        <Container triggerText={triggerText} onSubmit={onSubmit} />
+        <Container src={loginNav} className="login-nav" triggerText={triggerText} onSubmit={onSubmit}
+        formBtnText="login" />
+        <Container src={signupNav} className="signup-nav" triggerText={triggerText} onSubmit={onSubmit}
+        formBtnText="sign up" />
         <img src={profileNav} className="profile-nav" alt="profile" />
         </nav>
     )

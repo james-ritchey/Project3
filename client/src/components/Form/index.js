@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const Form = ({ onSubmit }) => {
+export const Form = ({ onSubmit, formBtntext }) => {
   return (
     <form onSubmit={onSubmit}>
       <div className="form-group">
@@ -18,7 +18,7 @@ export const Form = ({ onSubmit }) => {
       </div>
       <div className="form-group">
         <button className="form-control btn btn-danger" type="submit">
-          Submit
+          {formBtntext}
         </button>
       </div>
     </form>
