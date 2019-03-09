@@ -12,7 +12,6 @@ var sockets = function(socket) {
     console.log('a user connected');
     // create a new player and add it to our players object
     players[socket.id] = {
-      rotation: 0,
       x: game_config.width / 2,
       y: game_config.height - 50,
       playerId: socket.id,
