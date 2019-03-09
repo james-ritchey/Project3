@@ -1,0 +1,9 @@
+#phaser-game {
+    display: flex;
+    justify-content: center;
+}
+
+.phaser-div {
+    background: linear-gradient(to right bottom, #111C26, #522727) fixed;
+    min-height: 100vh;
+}

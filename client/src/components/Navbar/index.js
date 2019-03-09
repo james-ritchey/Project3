@@ -20,9 +20,9 @@ const Nav = () => {
         <nav className="navbar">
         <img src={usersNav} className="users-nav" alt="users" />
         <Container src={loginNav} className="login-nav" triggerText={triggerText} onSubmit={onSubmit}
-        formBtnText="login" />
+        formBtntext="login" />
         <Container src={signupNav} className="signup-nav" triggerText={triggerText} onSubmit={onSubmit}
-        formBtnText="sign up" />
+        formBtntext="sign up" />
         <img src={profileNav} className="profile-nav" alt="profile" />
         </nav>
     )

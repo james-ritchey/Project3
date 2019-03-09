@@ -153,7 +153,7 @@ export class Game extends Component {
   }
   render() {
     return (
-      <div>
+      <div className="phaser-div">
         <div id="phaser-game"></div>
       </div>
       

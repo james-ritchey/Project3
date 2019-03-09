@@ -40,7 +40,8 @@ export const Modal = ({
               </svg>
             </button>
             <div className="modal-body">
-              <Form onSubmit={onSubmit} formBtntext="login" />
+              <Form onSubmit={onSubmit} formBtntext={formBtntext} />
+              {console.log("form component formBtnText = ", formBtntext)}
             </div>
           </div>
         </aside>

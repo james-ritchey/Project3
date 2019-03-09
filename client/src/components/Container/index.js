@@ -29,6 +29,7 @@ export class Container extends Component {
     document.querySelector('html').classList.toggle('scroll-lock');
   };
   render() {
+      console.log(`container formBtntext = ${this.props.formBtntext}`)
     return (
       <React.Fragment>
         <TriggerButton
@@ -40,6 +41,7 @@ export class Container extends Component {
         />
         {this.state.isShown ? (
           <Modal
+            formBtntext={this.props.formBtntext}
             onSubmit={this.props.onSubmit}
             modalRef={(n) => (this.modal = n)}
             buttonRef={(n) => (this.closeButton = n)}
