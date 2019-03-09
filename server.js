@@ -35,7 +35,6 @@ require('./config/passport.js')(passport);
 
 var server = require('http').Server(app);
 var io = require('socket.io').listen(server);
-io.origins("http://localhost:* http://127.0.0.1:*");
 io.on("connection", (socket) => {
   require('./routes/sockets')(socket, io);
 })
