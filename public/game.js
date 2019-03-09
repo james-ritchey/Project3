@@ -13,7 +13,7 @@ var config = {
     scene: {
         preload: preload,
         create: create,
-        update: update
+        update: update,
     } 
 };
 
@@ -22,6 +22,7 @@ var config = {
 var game = new Phaser.Game(config);
 var fireButton;
 var bullets;
+var isHost = false;
 
 function preload() {
     this.load.image('ship', 'assets/player1.png');
@@ -36,6 +37,10 @@ function create() {
     this.otherPlayers = this.physics.add.group();
 
     this.socket.on('currentPlayers', function (players) {
+        console.log("Players: " + Object.keys(players).length);
+        if(Object.keys(players).length <= 1) {
+            isHost = true;
+        }
         Object.keys(players).forEach(function (id) {
             if (players[id].playerId === self.socket.id) {
                 addPlayer(self, players[id]);
@@ -50,9 +55,13 @@ function create() {
         addOtherPlayers(self, playerInfo);
     });
 
-    this.socket.on('disconnect', function (playerId) {
+    this.socket.on('disconnect', function(playerId) {
         self.otherPlayers.getChildren().forEach(function (otherPlayer) {
             if (playerId === otherPlayer.playerId) {
+                console.log("Players: " + self.otherPlayers.getChildren().length);
+                if(self.otherPlayers.getChildren().length <= 1) {
+                    isHost = true;
+                }
                 otherPlayer.destroy();
             }
         });
@@ -79,13 +88,21 @@ function create() {
     });
 
     this.socket.on('playerFired', function(firePos) {
-        var bullet = bullets.get();
-
+        var bullet = otherBullets.get();
         if (bullet)
         {
             bullet.fire(firePos.x, firePos.y);
         }
     });
+
+    this.socket.on('hitEnemy', function(data){
+        console.log("Hit an enemy");
+        enemies.getChildren().forEach(function(enemy) {
+            if(enemy.id === data.enemyId) {
+                enemy.hit(data.newEnemyX, -20);
+            }
+        })
+    })
 
     //Class creation for the Bullet class
     var Bullet = new Phaser.Class({
@@ -96,7 +113,6 @@ function create() {
 
         function Bullet (scene){
             Phaser.GameObjects.Image.call(this, scene, 0, 0, 'star');
-
             this.speed = Phaser.Math.GetSpeed(600, 1);
         },
 
@@ -109,8 +125,7 @@ function create() {
         update: function (time, delta){
             this.y -= this.speed * delta;
 
-            if (this.y < 0)
-            {
+            if (this.y < 0){
                 this.setActive(false);
                 this.setVisible(false);
             }
@@ -126,6 +141,9 @@ function create() {
 
         function Enemy (scene){
             Phaser.GameObjects.Image.call(this, scene, 0, 0, 'enemy');
+            this.id = enemies.getChildren().length;
+            this.travelTime = 2;
+            this.speed = Phaser.Math.GetSpeed(600, this.travelTime);
         },
 
         create: function (x, y){
@@ -135,12 +153,26 @@ function create() {
         },
 
         update: function (time, delta){
+            this.y += this.speed * delta;
 
+            if(this.y > config.height + 25) {
+                this.y = -25;
+            }
+        },
+
+        hit: function(x, y, bullet, enemy) {
+            this.setPosition(x, y);
         }
 
     });
     //Create the bullets group
     bullets = this.physics.add.group({
+        classType: Bullet,
+        maxSize: 60,
+        runChildUpdate: true
+    });
+
+    otherBullets = this.physics.add.group({
         classType: Bullet,
         maxSize: 60,
         runChildUpdate: true
@@ -159,20 +191,31 @@ function create() {
     }
     //Add the overlap listener for the bullets and enemies
     this.physics.add.overlap(bullets, enemies, enemyHit);
-
-    function enemyHit() {
-        // this.socket.broadcast.emit('enemyHit');
+    this.physics.add.overlap(otherBullets, enemies, function(bullet, enemy) {
+        bullet.setPosition(-100, -100);
+        bullets.killAndHide(bullet);
+    });
+    
+    function enemyHit(bullet, enemy) {
+        bullet.setPosition(-100, -100);
+        bullets.killAndHide(bullet);
+        var newEnemyX = Math.floor(Math.random() * (config.width - 100)) + 50;
+        self.socket.emit('enemyHit', { enemyId: enemy.id, newEnemyX: newEnemyX});
+        enemy.hit(newEnemyX, -20);
         console.log("Hit");
-        // this.socket.on("enemyHit", function() {
-        //   console.log("Hit");
-        // });
+        console.log(enemy.id);
     };
+
+
 // === End of the create() function ===
 }
+
+
 
 var playerSpeed = 4;
 
 function update() {
+
     if (this.ship) {
         if (this.cursors.left.isDown && this.ship.x > 50) {
             this.ship.x = this.ship.x - playerSpeed;
@@ -184,6 +227,7 @@ function update() {
         if (Phaser.Input.Keyboard.JustDown(fireButton))
         {
             var bullet = bullets.get();
+            console.log(isHost);
 
             if (bullet)
             {
@@ -219,6 +263,7 @@ function addPlayer(self, playerInfo) {
     console.log("Height: " + config.height);
     self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setDisplaySize(64, 64);
     self.ship.setDepth(1);
+
 }
 
 function addOtherPlayers(self, playerInfo) {

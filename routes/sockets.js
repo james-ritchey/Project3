@@ -33,8 +33,8 @@ var sockets = function(socket) {
       // remove this player from our players object
       delete players[socket.id];
       // emit a message to all players to remove this player
-      io.emit('disconnect', socket.id);
-        });
+      socket.broadcast.emit('disconnect', socket.id);
+    });
   
       // when a player moves, update the player data
       socket.on('playerMovement', function (movementData) {
@@ -45,21 +45,12 @@ var sockets = function(socket) {
         socket.broadcast.emit('playerMoved', players[socket.id]);
       });
   
-    socket.on('starCollected', function () {
-      if (players[socket.id].team === 'red') {
-        scores.red += 10;
-      } else {
-        scores.blue += 10;
-      }
-      star.x = Math.floor(Math.random() * 700) + 50;
-      star.y = Math.floor(Math.random() * 500) + 50;
-      io.emit('starLocation', star);
-      io.emit('scoreUpdate', scores);
-    });
-  
     socket.on('playerFire', function(data) {
       socket.broadcast.emit('playerFired', data)
     });
+    socket.on('enemyHit', function(data){
+      socket.broadcast.emit('hitEnemy', data);
+    })
 }
 
 module.exports = sockets;
