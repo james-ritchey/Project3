@@ -26,18 +26,6 @@ const Nav = () => {
       //this.props.history.push("/game")
     })
   };
-<<<<<<< HEAD
-    return (
-        <nav className="navbar">
-        <img src={usersNav} className="users-nav" alt="users" />
-        <Container src={loginNav} className="login-nav" triggerText={triggerText} onSubmit={onSubmit}
-        formBtntext="login" />
-        <Container src={signupNav} className="signup-nav" triggerText={triggerText} onSubmit={onSubmit}
-        formBtntext="sign up" />
-        <img src={profileNav} className="profile-nav" alt="profile" />
-        </nav>
-    )
-=======
   
   return (
       <nav className="navbar">
@@ -49,7 +37,6 @@ const Nav = () => {
       <img src={profileNav} className="profile-nav" alt="profile" />
       </nav>
   )
->>>>>>> f969bd3ff287be85d588c9913f2c8af9dc28bf73
 }
 
 

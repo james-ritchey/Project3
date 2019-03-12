@@ -1,9 +1,10 @@
 .App {
+  background: linear-gradient(to right bottom, #111C26, #522727) fixed;
   text-align: center;
 }
 
 .App-header {
-  background: linear-gradient(to right bottom, #111C26, #522727) fixed;
+  background-image: url(./stars1.svg), url(./stars2.svg);
   min-height: 100vh;
   display: flex;
   flex-direction: column;

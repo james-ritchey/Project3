@@ -42,10 +42,6 @@ export const Modal = ({
             </button>
             <div className="modal-body">
               <Form onSubmit={onSubmit} formBtntext={formBtntext} />
-<<<<<<< HEAD
-              {console.log("form component formBtnText = ", formBtntext)}
-=======
->>>>>>> f969bd3ff287be85d588c9913f2c8af9dc28bf73
             </div>
           </div>
         </aside>
