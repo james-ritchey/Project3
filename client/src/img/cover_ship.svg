@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="150px" height="100px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 300 200">
+<style type="text/css">
+	.st0{fill:#F1632E;}
+	.st1{fill:#FFFFFF;}
+	.st2{fill:#F1BD89;}
+</style>
+<g>
+	<polygon class="st0" points="300,140 280,140 280,120 240,120 240,80 220,80 220,120 200,120 200,100 180,100 180,40 160,40 160,0 
+		140,0 140,40 120,40 120,100 100,100 100,120 80,120 80,80 60,80 60,120 20,120 20,140 0,140 0,160 60,160 60,180 80,180 80,160 
+		120,160 120,180 140,180 140,200 160,200 160,180 180,180 180,160 220,160 220,180 240,180 240,160 300,160 	"/>
+	<g>
+		<rect x="140" y="60" class="st1" width="20" height="40"/>
+		<rect x="60" y="80" class="st1" width="20" height="20"/>
+		<rect x="220" y="80" class="st1" width="20" height="20"/>
+	</g>
+	<g>
+		<rect x="140" y="160" class="st2" width="20" height="40"/>
+		<rect x="80" y="140" class="st2" width="40" height="20"/>
+		<rect x="180" y="140" class="st2" width="40" height="20"/>
+		<rect x="40" y="140" class="st2" width="20" height="20"/>
+		<rect x="240" y="140" class="st2" width="20" height="20"/>
+	</g>
+</g>
+</svg>
