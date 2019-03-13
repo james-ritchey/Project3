@@ -1,6 +1,6 @@
 var config = {
     type: Phaser.AUTO,
-    parent: 'phaser-example',
+    parent: 'voyager',
     width: 800,
     height: 600,
     physics: {
@@ -38,18 +38,26 @@ function create() {
 
     this.socket.on('currentPlayers', function (players) {
         console.log("Players: " + Object.keys(players).length);
-        if(Object.keys(players).length <= 1) {
-            isHost = true;
-        }
+
         Object.keys(players).forEach(function (id) {
             if (players[id].playerId === self.socket.id) {
                 addPlayer(self, players[id]);
+                if(Object.keys(players).length <= 1) {
+                    isHost = true;
+                    self.socket.emit('assignHost', {isHost: true});
+                }
             } 
             else {
                 addOtherPlayers(self, players[id]);
             }
         });
     });
+
+    this.socket.on('hostAssigned', function(hostData) {
+        self.otherPlayers.getChildren().forEach(function (otherPlayer) {
+            console.log(hostData);
+        });
+    })
 
     this.socket.on('newPlayer', function (playerInfo) {
         addOtherPlayers(self, playerInfo);
@@ -58,20 +66,20 @@ function create() {
     this.socket.on('disconnect', function(playerId) {
         self.otherPlayers.getChildren().forEach(function (otherPlayer) {
             if (playerId === otherPlayer.playerId) {
-                console.log("Players: " + self.otherPlayers.getChildren().length);
-                if(self.otherPlayers.getChildren().length <= 1) {
-                    isHost = true;
-                }
                 otherPlayer.destroy();
+                if(self.otherPlayers.getChildren().length <= 0) {
+                    isHost = true;
+                    self.socket.emit('assignHost', {isHost: true});
+                }
             }
         });
+
     });
 
     this.cursors = this.input.keyboard.createCursorKeys();
     fireButton = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
     this.socket.on('playerMoved', function (playerInfo) {
-        //console.log(playerInfo);
         self.otherPlayers.getChildren().forEach(function (otherPlayer) {
             if (playerInfo.playerId === otherPlayer.playerId) {
                 otherPlayer.setPosition(playerInfo.x, playerInfo.y);
@@ -79,12 +87,12 @@ function create() {
         });
     });
 
-    this.blueScoreText = this.add.text(16, 16, '', { fontSize: '32px', fill: '#0000FF' });
-    this.redScoreText = this.add.text(584, 16, '', { fontSize: '32px', fill: '#FF0000' });
+    this.blueScoreText = this.add.text(16, 16, '', { fontSize: '32px', fill: '#ffffff' });
+    this.redScoreText = this.add.text(16, 48, '', { fontSize: '32px', fill: '#FF0000' });
 
     this.socket.on('scoreUpdate', function (scores) {
-        self.blueScoreText.setText('Blue: ' + scores.blue);
-        self.redScoreText.setText('Red: ' + scores.red);
+        self.blueScoreText.setText('Host: ' + scores.host);
+        self.redScoreText.setText('My Id: ' + self.socket.id);
     });
 
     this.socket.on('playerFired', function(firePos) {
@@ -99,7 +107,7 @@ function create() {
         console.log("Hit an enemy");
         enemies.getChildren().forEach(function(enemy) {
             if(enemy.id === data.enemyId) {
-                enemy.hit(data.newEnemyX, -20);
+                enemy.hit(data.newEnemyX, 100);
             }
         })
     })
@@ -142,8 +150,9 @@ function create() {
         function Enemy (scene){
             Phaser.GameObjects.Image.call(this, scene, 0, 0, 'enemy');
             this.id = enemies.getChildren().length;
-            this.travelTime = 2;
+            this.travelTime = 3;
             this.speed = Phaser.Math.GetSpeed(600, this.travelTime);
+            this.direction = 1;
         },
 
         create: function (x, y){
@@ -153,10 +162,13 @@ function create() {
         },
 
         update: function (time, delta){
-            this.y += this.speed * delta;
+            this.x += this.speed * delta * this.direction;
 
-            if(this.y > config.height + 25) {
-                this.y = -25;
+            if(this.x > config.width - 50) {
+                this.direction = -1;
+            }
+            else if(this.x < 50) {
+                this.direction = 1;
             }
         },
 
@@ -201,9 +213,7 @@ function create() {
         bullets.killAndHide(bullet);
         var newEnemyX = Math.floor(Math.random() * (config.width - 100)) + 50;
         self.socket.emit('enemyHit', { enemyId: enemy.id, newEnemyX: newEnemyX});
-        enemy.hit(newEnemyX, -20);
-        console.log("Hit");
-        console.log(enemy.id);
+        enemy.hit(newEnemyX, 100);
     };
 
 
@@ -226,9 +236,8 @@ function update() {
 
         if (Phaser.Input.Keyboard.JustDown(fireButton))
         {
-            var bullet = bullets.get();
             console.log(isHost);
-
+            var bullet = bullets.get();
             if (bullet)
             {
                 bullet.fire(this.ship.x, this.ship.y);
@@ -245,7 +254,7 @@ function update() {
         var x = this.ship.x;
         var y = this.ship.y;
         if (this.ship.oldPosition && (x !== this.ship.oldPosition.x || y !== this.ship.oldPosition.y)) {
-            this.socket.emit('playerMovement', { x: this.ship.x, y: this.ship.y, rotation: this.ship.rotation });
+            this.socket.emit('playerMovement', { x: this.ship.x, y: this.ship.y, isHost: isHost});
         }
 
         // save old position data
@@ -260,7 +269,6 @@ function update() {
 }
 
 function addPlayer(self, playerInfo) {
-    console.log("Height: " + config.height);
     self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setDisplaySize(64, 64);
     self.ship.setDepth(1);
 

@@ -12,7 +12,8 @@ var star = {
 };
 var scores = {
   blue: 0,
-  red: 0
+  red: 0,
+  host: "no one"
 };
 
 app.use(express.static(__dirname + '/public'));
@@ -23,12 +24,13 @@ app.get('/', function (req, res) {
 
 io.on('connection', function(socket) {
   // sockets(socket);
-  console.log('a user connected');
+  console.log('a user connected\n');
   // create a new player and add it to our players object
   players[socket.id] = {
     x: game_config.width / 2,
-    y: game_config.height - 50,
+    y: game_config.height - 64,
     playerId: socket.id,
+    isHost: false,
     team: (Math.floor(Math.random() * 2) == 0) ? 'red' : 'blue'
   };
   // send the players object to the new player
@@ -43,20 +45,43 @@ io.on('connection', function(socket) {
   socket.broadcast.emit('newPlayer', players[socket.id]);
 
   socket.on('disconnect', function () {
-    console.log('user disconnected');
-    // remove this player from our players object
-    delete players[socket.id];
+    console.log('user disconnected\n');
+    if(players[socket.id].isHost ) {
+      // remove this player from our players object
+      delete players[socket.id];
+
+      var playerKeys = Object.keys(players);
+      var newHostIndex = Math.floor(Math.random() * playerKeys.length);
+      players[playerKeys[newHostIndex]].isHost = true;
+      console.log(players[playerKeys[newHostIndex]])
+      scores.host = playerKeys[newHostIndex];
+      io.emit('scoreUpdate', scores);
+      socket.broadcast.emit('hostAssigned', players[playerKeys[newHostIndex]]);
+      console.log("\nNew Host is being Selected\n");
+
+    }
+    else {
+      // remove this player from our players object
+      delete players[socket.id];
+    }
     // emit a message to all players to remove this player
     io.emit('disconnect', socket.id);
-      });
+  });
 
-    // when a player moves, update the player data
-    socket.on('playerMovement', function (movementData) {
-      players[socket.id].x = movementData.x;
-      players[socket.id].y = movementData.y;
-      // emit a message to all players about the player that moved
-      socket.broadcast.emit('playerMoved', players[socket.id]);
-    });
+  socket.on('assignHost', function(hostData) {
+    players[socket.id].isHost = hostData.isHost;
+    scores.host = socket.id;
+    socket.emit('scoreUpdate', scores);
+    socket.broadcast.emit('hostAssigned', players[socket.id]);
+  })
+
+  // when a player moves, update the player data
+  socket.on('playerMovement', function (movementData) {
+    players[socket.id].x = movementData.x;
+    players[socket.id].y = movementData.y;
+    // emit a message to all players about the player that moved
+    socket.broadcast.emit('playerMoved', players[socket.id]);
+  });
 
   socket.on('starCollected', function () {
     if (players[socket.id].team === 'red') {
