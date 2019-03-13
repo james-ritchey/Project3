@@ -24,13 +24,16 @@ var fireButton;
 var bullets;
 var isHost = false;
 
+// Preload function for the Phaser engine
 function preload() {
+    //Load the required image assets into the engine
     this.load.image('ship', 'assets/player1.png');
     this.load.image('otherShip', 'assets/player2.png');
     this.load.image('enemy', 'assets/enemy1.png');
     this.load.image('star', 'assets/star_gold.png');
 }
 
+// Create function for the Phaser engine
 function create() {
     var self = this;
     this.socket = io();
@@ -42,10 +45,6 @@ function create() {
         Object.keys(players).forEach(function (id) {
             if (players[id].playerId === self.socket.id) {
                 addPlayer(self, players[id]);
-                if(Object.keys(players).length <= 1) {
-                    isHost = true;
-                    self.socket.emit('assignHost', {isHost: true});
-                }
             } 
             else {
                 addOtherPlayers(self, players[id]);
@@ -53,9 +52,14 @@ function create() {
         });
     });
 
-    this.socket.on('hostAssigned', function(hostData) {
+    this.socket.on('hostAssigned', function(hostPlayer) {
         self.otherPlayers.getChildren().forEach(function (otherPlayer) {
-            console.log(hostData);
+            if(otherPlayer.playerId === hostPlayer.playerId) {
+                otherPlayer.isHost = hostPlayer.isHost;
+            }
+            else if(hostPlayer.playerId === self.socket.id) {
+                isHost = true;
+            }
         });
     })
 
@@ -67,10 +71,6 @@ function create() {
         self.otherPlayers.getChildren().forEach(function (otherPlayer) {
             if (playerId === otherPlayer.playerId) {
                 otherPlayer.destroy();
-                if(self.otherPlayers.getChildren().length <= 0) {
-                    isHost = true;
-                    self.socket.emit('assignHost', {isHost: true});
-                }
             }
         });
 
@@ -87,12 +87,12 @@ function create() {
         });
     });
 
-    this.blueScoreText = this.add.text(16, 16, '', { fontSize: '32px', fill: '#ffffff' });
-    this.redScoreText = this.add.text(16, 48, '', { fontSize: '32px', fill: '#FF0000' });
+    this.currentHost = this.add.text(16, 16, '', { fontSize: '32px', fill: '#ffffff' });
+    this.playerId = this.add.text(16, 48, '', { fontSize: '32px', fill: '#FF0000' });
 
     this.socket.on('scoreUpdate', function (scores) {
-        self.blueScoreText.setText('Host: ' + scores.host);
-        self.redScoreText.setText('My Id: ' + self.socket.id);
+        self.currentHost.setText('Host: ' + scores.host);
+        self.playerId.setText('My Id: ' + self.socket.id);
     });
 
     this.socket.on('playerFired', function(firePos) {
@@ -196,6 +196,8 @@ function create() {
         runChildUpdate: true
     });
 
+
+    //Create an enemy, currently used for debugging enemy movement pre-behavior implementation   
     var enemy = enemies.get();
 
     if (enemy){
@@ -208,6 +210,7 @@ function create() {
         bullets.killAndHide(bullet);
     });
     
+    //The function called when the local player hits an enemy
     function enemyHit(bullet, enemy) {
         bullet.setPosition(-100, -100);
         bullets.killAndHide(bullet);
@@ -225,7 +228,7 @@ function create() {
 var playerSpeed = 4;
 
 function update() {
-
+    //Player controls including movement and firing
     if (this.ship) {
         if (this.cursors.left.isDown && this.ship.x > 50) {
             this.ship.x = this.ship.x - playerSpeed;
@@ -233,15 +236,13 @@ function update() {
         else if (this.cursors.right.isDown && this.ship.x < config.width - 50) {
             this.ship.x = this.ship.x + playerSpeed;
         } 
-
+        //The player fires when they press the fire button, currently the 'space bar'
         if (Phaser.Input.Keyboard.JustDown(fireButton))
         {
-            console.log(isHost);
             var bullet = bullets.get();
             if (bullet)
             {
                 bullet.fire(this.ship.x, this.ship.y);
-                //console.log("Trying to emit the firePos");
                 var bulletLoc = {
                     x: this.ship.x,
                     y: this.ship.y
@@ -269,6 +270,9 @@ function update() {
 }
 
 function addPlayer(self, playerInfo) {
+    if(playerInfo.isHost) {
+        isHost = true;
+    }
     self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setDisplaySize(64, 64);
     self.ship.setDepth(1);
 
@@ -279,12 +283,3 @@ function addOtherPlayers(self, playerInfo) {
     otherPlayer.playerId = playerInfo.playerId;
     self.otherPlayers.add(otherPlayer);
 }
-
-// function enemyHit() {
-//   socket.broadcast.emit('enemyHit');
-//   console.log("Hit");
-//   socket.on("enemyHit", function() {
-//     console.log("Hit");
-//   });
-// };
-

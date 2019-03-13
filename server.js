@@ -11,8 +11,7 @@ var star = {
   y: Math.floor(Math.random() * 500) + 50
 };
 var scores = {
-  blue: 0,
-  red: 0,
+  scores: [],
   host: "no one"
 };
 
@@ -33,6 +32,12 @@ io.on('connection', function(socket) {
     isHost: false,
     team: (Math.floor(Math.random() * 2) == 0) ? 'red' : 'blue'
   };
+
+  if(Object.keys(players).length === 1) {
+    players[socket.id].isHost = true;
+    scores.host = socket.id;
+  }
+
   // send the players object to the new player
   socket.emit('currentPlayers', players);
 
@@ -46,19 +51,22 @@ io.on('connection', function(socket) {
 
   socket.on('disconnect', function () {
     console.log('user disconnected\n');
+    //If the disconnecting player was the host, find a new one
     if(players[socket.id].isHost ) {
       // remove this player from our players object
       delete players[socket.id];
-
-      var playerKeys = Object.keys(players);
-      var newHostIndex = Math.floor(Math.random() * playerKeys.length);
-      players[playerKeys[newHostIndex]].isHost = true;
-      console.log(players[playerKeys[newHostIndex]])
-      scores.host = playerKeys[newHostIndex];
-      io.emit('scoreUpdate', scores);
-      socket.broadcast.emit('hostAssigned', players[playerKeys[newHostIndex]]);
-      console.log("\nNew Host is being Selected\n");
-
+      //Only chooses a new host if there's a connected player
+      if(Object.keys(players).length > 0) {
+        //Randomly choose a new host and change the isHost value to 'true'
+        var playerKeys = Object.keys(players);
+        var newHostIndex = Math.floor(Math.random() * playerKeys.length);
+        players[playerKeys[newHostIndex]].isHost = true;
+        scores.host = playerKeys[newHostIndex];
+        //Emit the new host data to the remaining players
+        io.emit('scoreUpdate', scores);
+        socket.broadcast.emit('hostAssigned', players[playerKeys[newHostIndex]]);
+        console.log("\nNew Host is being Selected\n");
+      }
     }
     else {
       // remove this player from our players object
@@ -68,13 +76,6 @@ io.on('connection', function(socket) {
     io.emit('disconnect', socket.id);
   });
 
-  socket.on('assignHost', function(hostData) {
-    players[socket.id].isHost = hostData.isHost;
-    scores.host = socket.id;
-    socket.emit('scoreUpdate', scores);
-    socket.broadcast.emit('hostAssigned', players[socket.id]);
-  })
-
   // when a player moves, update the player data
   socket.on('playerMovement', function (movementData) {
     players[socket.id].x = movementData.x;
@@ -83,6 +84,7 @@ io.on('connection', function(socket) {
     socket.broadcast.emit('playerMoved', players[socket.id]);
   });
 
+  //Listens for when a star is collected, left over from the tutorial prototype
   socket.on('starCollected', function () {
     if (players[socket.id].team === 'red') {
       scores.red += 10;
@@ -95,10 +97,12 @@ io.on('connection', function(socket) {
     io.emit('scoreUpdate', scores);
   });
 
+  //When a player fires, emit the fire location to the other players
   socket.on('playerFire', function(data) {
     socket.broadcast.emit('playerFired', data)
   });
 
+  //When a player hits an enemy, emit this to the other players
   socket.on('enemyHit', function(data){
     socket.broadcast.emit('hitEnemy', data);
   });
