@@ -106,6 +106,14 @@ io.on('connection', function(socket) {
   socket.on('enemyHit', function(data){
     socket.broadcast.emit('hitEnemy', data);
   });
+  //When the client loads the required fonts, send the client the required score data
+  socket.on('fontsLoaded', function() {
+    io.to(`${socket.id}`).emit('scoreUpdate', scores);
+  })
+
+  socket.on('enemyState', function(enemyData) {
+    socket.broadcast.emit('updateEnemyState', enemyData);
+  })
 
 });
 
