@@ -37,12 +37,13 @@ class App extends Component {
       <Router>
       <div>
         <Switch>
-          <Route exact path='/'
-            render={() => <Landing user={this.state.user} onLogin={this.onLogin} onSignup={this.onSignup}  />}
-          />
+          
           <Route exact path="/game"
             render={() => <Game user={this.state.user}  />}
           />
+          <Route path='/'
+            render={() => <Landing user={this.state.user} onLogin={this.onLogin} onSignup={this.onSignup}  />}
+          /> 
         </Switch>
       </div>
     </Router>
