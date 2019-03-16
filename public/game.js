@@ -17,12 +17,11 @@ var config = {
     } 
 };
 
-// var socketGlobal = io();
-
 var game = new Phaser.Game(config);
 var fireButton;
 var bullets;
 var isHost = false;
+var enemyData = {};
 
 // Preload function for the Phaser engine
 function preload() {
@@ -38,8 +37,6 @@ function preload() {
 // Create function for the Phaser engine
 function create() {
     
-    //this.currentHost = this.add.text(16, 16, '', { fontSize: '32px', fill: '#ffffff' });
-    //this.playerId = this.add.text(16, 48, '', { fontSize: '32px', fill: '#FF0000' });
     var self = this;
     var add = this.add;
     var setScore = false;
@@ -60,7 +57,6 @@ function create() {
         }
     });
     
-
 
     this.socket.on('currentPlayers', function (players) {
         console.log("Players: " + Object.keys(players).length);
@@ -136,20 +132,20 @@ function create() {
     });
 
     this.socket.on('hitEnemy', function(data){
-        enemies.getChildren().forEach(function(enemy) {
-            if(enemy.id === data.enemyId) {
-                enemy.hit(data.newEnemyX, 100);
-            }
-        })
-    })
+        enemies.getChildren()[data.id].hit();
+    });
 
     this.socket.on('updateEnemyState', function(enemyData) {
-        var enemiesArray = enemies.getChildren();
-        Object.keys(enemyData).forEach(function(key, index) {
-            enemiesArray[index].setState(enemyData[key]);
+        var enemyArray = enemies.getChildren();
+        this.enemyData = enemyData;
 
-        })
-    })
+        if(enemyArray.length > 0) {
+            Object.keys(enemyData).forEach(function(key) {
+                enemyArray[key].setState(enemyData[key]);
+            });
+        }
+
+    });
 
     //Class creation for the Bullet class
     var Bullet = new Phaser.Class({
@@ -190,8 +186,10 @@ function create() {
             Phaser.GameObjects.Image.call(this, scene, 0, 0, 'enemy');
             this.id = enemies.getChildren().length;
             this.travelTime = 3;
-            this.speed = Phaser.Math.GetSpeed(800, this.travelTime);
+            //this.speed = Phaser.Math.GetSpeed(800, this.travelTime);
+            this.speed = 200;
             this.direction = 1;
+            this.group;
         },
 
         create: function (x, y){
@@ -201,28 +199,60 @@ function create() {
         },
 
         update: function (time, delta){
-            if(isHost) {
-                this.x += this.speed * delta * this.direction;
+            if(this.group.getChildren()[enemies.getChildren().length - 1].x > config.width - 50) {
+                this.group.setVelocityX(this.speed * -1);
+            }
+            else if(this.group.getChildren()[0].x < 50) {
+                this.group.setVelocityX(this.speed);
+            }
 
-                if(this.x > config.width - 50) {
-                    this.direction = -1;
+            if(isHost) {
+                var state = {
+                    id: this.id,
+                    x: this.x,
+                    y: this.y,
+                    speed: this.speed
                 }
-                else if(this.x < 50) {
-                    this.direction = 1;
-                }
+                self.socket.emit('enemyState', state);
             }
 
         },
 
         hit: function(x, y, bullet, enemy) {
-            this.setPosition(x, y);
+            self.socket.emit('enemyState', {id: this.id, kill: true});
+            this.destroy();
+
+            if(enemies.length <= 0) {
+                for(var i = 0; i < 5; i++) {
+                    var enemy = enemies.get();
+            
+                    if (enemy){
+                        enemy.create(75 + (75 * i), 60 );
+                        enemy.setDisplaySize(99 / 2, 90 / 2);
+                    }
+                }
+                enemies.setVelocityX(200);
+            }
+
         },
 
         setState: function(data) {
-            this.x = data.x;
-            this.y = data.y;
-            this.direction = data.direction;
-            this.travelTime = data.travelTime;
+            console.log(data);
+            if(this.id === data.id) {
+                if(data.speed) {
+                    this.speed = data.speed;
+                }
+                if(data.x) {
+                    this.x = data.x;
+                }
+                else {
+                    this.x += this.speed * this.direction;
+                }
+                if(data.y){
+                    this.y = data.y;
+                }
+            }
+
         }
 
     });
@@ -238,45 +268,34 @@ function create() {
         maxSize: 60,
         runChildUpdate: true
     });
+
     //Create the enemies group
     enemies = this.physics.add.group({
         classType: Enemy,
-        maxSize: 10,
-        runChildUpdate: true
+        runChildUpdate: true,
+        maxSize: 10
     });
 
 
-    for(var i = 0; i < 10; i++) {
-        var enemy = enemies.get();
-
-        if (enemy){
-            enemy.create(config.width / 2, 60 + (50 * i));
-            enemy.setDisplaySize(99 / 2, 90 / 2);
-        }
-    }
-    //Create an enemy, currently used for debugging enemy movement pre-behavior implementation   
 
     //Add the overlap listener for the bullets and enemies
     this.physics.add.overlap(bullets, enemies, enemyHit);
     this.physics.add.overlap(otherBullets, enemies, function(bullet, enemy) {
-        bullet.setPosition(-100, -100);
         bullets.killAndHide(bullet);
+        bullet.setPosition(-100, -100);
     });
     
     //The function called when the local player hits an enemy
     function enemyHit(bullet, enemy) {
-        bullet.setPosition(-100, -100);
         bullets.killAndHide(bullet);
-        var newEnemyX = Math.floor(Math.random() * (config.width - 100)) + 50;
-        self.socket.emit('enemyHit', { enemyId: enemy.id, newEnemyX: newEnemyX});
+        bullet.setPosition(-100, -100);
+        self.socket.emit('enemyHit', { enemyId: enemy.id, newX: newEnemyX});
         enemy.hit(newEnemyX, enemy.y);
     };
 
 
 // === End of the create() function ===
 }
-
-
 
 var playerSpeed = 4;
 
@@ -335,18 +354,20 @@ function update() {
 
     }
 
-    if(isHost) {
-        var enemyData = {};
-        enemies.getChildren().forEach(function(enemy) {
-            enemyData[enemy.id] = {
-                x: enemy.x,
-                y: enemy.y,
-                direction: enemy.direction,
-                travelTime: enemy.travelTime
-            }
-        });
-        this.socket.emit('enemyState', enemyData);
-    }
+    // if(isHost) {
+    //     var enemyData = {};
+    //     enemies.getChildren().forEach(function(enemy) {
+    //         enemyData[enemy.id] = {
+    //             x: enemy.x,
+    //             y: enemy.y,
+    //             direction: enemy.direction,
+    //             travelTime: enemy.travelTime
+    //         }
+    //     });
+    //     this.socket.emit('enemyState', enemyData);
+    // }
+
+
 
 // === End of the update() function ===
 }

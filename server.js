@@ -15,6 +15,8 @@ var scores = {
   host: "no one"
 };
 
+var enemyStates = {};
+
 app.use(express.static(__dirname + '/public'));
  
 app.get('/', function (req, res) {
@@ -40,12 +42,11 @@ io.on('connection', function(socket) {
 
   // send the players object to the new player
   socket.emit('currentPlayers', players);
-
   // send the star object to the new player
   socket.emit('starLocation', star);
   // send the current scores
   socket.emit('scoreUpdate', scores);
-
+  socket.emit('updateEnemyState', enemyStates);
   // update all other players of the new player
   socket.broadcast.emit('newPlayer', players[socket.id]);
 
@@ -71,6 +72,9 @@ io.on('connection', function(socket) {
     else {
       // remove this player from our players object
       delete players[socket.id];
+    }
+    if(Object.keys(players).length <= 0) {
+      enemyStates = {};
     }
     // emit a message to all players to remove this player
     io.emit('disconnect', socket.id);
@@ -104,19 +108,28 @@ io.on('connection', function(socket) {
 
   //When a player hits an enemy, emit this to the other players
   socket.on('enemyHit', function(data){
-    socket.broadcast.emit('hitEnemy', data);
+    console.log(data);
+    var enemyData = enemyStates[data.enemyId];
+    enemyData.x = data.newX;
+    socket.broadcast.emit('hitEnemy', enemyData);
   });
   //When the client loads the required fonts, send the client the required score data
   socket.on('fontsLoaded', function() {
     io.to(`${socket.id}`).emit('scoreUpdate', scores);
-  })
+  });
 
   socket.on('enemyState', function(enemyData) {
-    socket.broadcast.emit('updateEnemyState', enemyData);
-  })
+    if(enemyData.kill) {
+      delete enemyStates[enemyData.id];
+      socket.emit('updateEnemyState', enemyStates);
+    }
+    else {
+      enemyStates[enemyData.id] = enemyData;
+    }
+  });
 
 });
 
-server.listen(8081, function () {
+server.listen(1942, function () {
   console.log(`Listening on ${server.address().port}`);
 });
