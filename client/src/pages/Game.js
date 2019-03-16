@@ -10,7 +10,7 @@ class Game extends Component {
   render() {
     return (
       <div>
-        <GameComponent />
+        <GameComponent user={this.props.user} />
       </div>
     )
   }

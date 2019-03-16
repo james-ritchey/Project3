@@ -1,9 +1,11 @@
 import React, { Component } from "react";
+import { Redirect } from 'react-router-dom';
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import './App.css';
 import Landing from './pages/Landing';
 import Game from './pages/Game';
 import User from './api/Users';
+import Lobby from './pages/Lobby';
 
 
 class App extends Component {
@@ -36,10 +38,13 @@ class App extends Component {
     return (
       <Router>
       <div>
+        {console.log(this.state)}
         <Switch>
-          
-          <Route exact path="/game"
-            render={() => <Game user={this.state.user}  />}
+          <Route exact path="/lobby"
+            render={() => this.state.user.isAuth ? (<Lobby user={this.state.user} />) : (<Redirect to="/" />)}
+          />
+          <Route exact path="/game/:id"
+            render={() => this.state.user.isAuth ? (<Game user={this.state.user} />) : (<Redirect to="/" />)}
           />
           <Route path='/'
             render={() => <Landing user={this.state.user} onLogin={this.onLogin} onSignup={this.onSignup}  />}

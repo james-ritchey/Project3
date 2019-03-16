@@ -43,7 +43,7 @@ class Login extends Component {
     return (
       <div className="App">
         <header className="App-header">
-        {this.props.user.isAuth ? <Redirect to={{ pathname:"/game", state: { user: this.props.user }}} /> : this.renderObj()}
+        {this.props.user.isAuth ? <Redirect to={{ pathname:"/lobby", state: { user: this.props.user }}} /> : this.renderObj()}
         </header>
       </div>
       
