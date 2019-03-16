@@ -1,0 +1,11 @@
+input {
+  width: 25%;
+}
+
+form {
+  padding-top: 10%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}

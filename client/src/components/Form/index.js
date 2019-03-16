@@ -1,4 +1,5 @@
 import React from 'react';
+import './form.css';
 
 export const Form = ({ onSubmit, formBtntext, loginSignupState }) => {
   return (

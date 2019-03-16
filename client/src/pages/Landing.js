@@ -2,7 +2,7 @@ import React, { Component } from "react";
 //import { Link } from "react-router-dom";
 import voyagerLogo from '../img/voyager_logo.svg';
 import coverShip from '../img/cover_ship.svg';
-import usersNav from "../img/users_nav.svg";
+import enterNav from "../img/enter_nav.svg";
 import Form from "../components/Form";
 import { Redirect } from 'react-router-dom';
 
@@ -23,12 +23,12 @@ class Login extends Component {
   renderObj() {
     if(!this.state.login && !this.state.signup) {
       return (
-        <div>
+        <div className="landing-container">
           <img src={coverShip} className="cover-ship" alt="ship" />
-          <img src={voyagerLogo} className="App-logo" alt="logo" />
+          <img src={voyagerLogo} className="landing-logo" alt="logo" />
           {/*Enter button*/}
           
-          <img src={usersNav} className="users-nav" alt="users" onClick={this.onEnter} />
+          <img src={enterNav} className="enter-nav" alt="enter" onClick={this.onEnter} />
         </div>
       )
     } else if(this.state.login) {
@@ -41,8 +41,8 @@ class Login extends Component {
 
   render() {
     return (
-      <div className="App">
-        <header className="App-header">
+      <div className="landing">
+        <header className="landing-header">
         {this.props.user.isAuth ? <Redirect to={{ pathname:"/lobby", state: { user: this.props.user }}} /> : this.renderObj()}
         </header>
       </div>
