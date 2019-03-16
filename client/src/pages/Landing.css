@@ -1,0 +1,16 @@
+.users-nav {
+  display: flex;
+  justify-content: space-around;
+  position: relative;
+  top: 100px;
+  width: 20%;
+  background-color: transparent !important;
+  color: white;
+}
+
+.users-nav {
+  cursor: pointer;
+}
+.users-nav:hover {
+  filter: blur(5px);
+}

@@ -1,0 +1,17 @@
+.navbar {
+  display: flex;
+  justify-content: space-around;
+  position: relative;
+  top: 100px;
+  width: 100%;
+  background-color: transparent !important;
+  color: white;
+}
+
+.users-nav, .login-nav, .signup-nav, .profile-nav {
+  cursor: pointer;
+}
+
+.login-nav:hover, .users-nav:hover, .signup-nav:hover, .profile-nav:hover {
+  filter: blur(5px);
+}

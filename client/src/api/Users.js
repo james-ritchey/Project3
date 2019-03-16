@@ -8,13 +8,13 @@ const Users = {
     axios.post(`${userURL}/login`, {
       username: username,
       password: password
-    }).then(cb());
+    }).then(res => cb(res));
   },
   signup: (username, password, cb) => {
     axios.post(`${userURL}/signup`, {
       username: username,
       password: password
-    }).then(cb());
+    }).then(res => cb(res));
   }
   
 }

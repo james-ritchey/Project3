@@ -4,7 +4,7 @@
 }
 
 .App-header {
-  background-image: url(./stars1.svg), url(./stars2.svg);
+  background-image: url(./img/stars1.svg), url(./img/stars2.svg);
   min-height: 100vh;
   display: flex;
   flex-direction: column;

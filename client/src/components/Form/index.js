@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const Form = ({ onSubmit, formBtntext }) => {
+export const Form = ({ onSubmit, formBtntext, loginSignupState }) => {
   return (
     <form onSubmit={onSubmit}>
       <div className="form-group">
@@ -20,6 +20,9 @@ export const Form = ({ onSubmit, formBtntext }) => {
         <button className="form-control btn btn-danger" type="submit">
           {formBtntext}
         </button>
+      </div>
+      <div>
+        <a onClick={loginSignupState}>{formBtntext === "Login" ? "Click here to Signup" : "Click here to login"}</a>
       </div>
     </form>
   );
