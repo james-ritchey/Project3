@@ -1,29 +1,31 @@
 import React from 'react';
+import loginNav from '../../img/login_nav.svg';
+import signUpNav from '../../img/signup_nav.svg';
 import './form.css';
 
 export const Form = ({ onSubmit, formBtntext, loginSignupState }) => {
   return (
     <form onSubmit={onSubmit}>
-      <div className="form-group">
+      <div className="form-group usernameTitle">
         <label htmlFor="name">Username</label>
-        <input className="form-control" id="name" />
+        <input className="form-control usernameBox" id="name" />
       </div>
-      <div className="form-group">
+      <div className="form-group passwordTitle">
         <label htmlFor="password">Password</label>
         <input
           type="password"
-          className="form-control"
+          className="form-control passwordBox"
           id="password"
           placeholder=""
         />
       </div>
       <div className="form-group">
-        <button className="form-control btn btn-danger" type="submit">
+        <button className="form-control btn btn-danger submit-btn" type="submit">
           {formBtntext}
         </button>
       </div>
-      <div>
-        <a onClick={loginSignupState}>{formBtntext === "Login" ? "Click here to Signup" : "Click here to login"}</a>
+      <div className="loginSignupSwitch">
+        <a onClick={loginSignupState}>{formBtntext === "Login" ? "Click here to Signup" : "Click here to Login"}</a>
       </div>
     </form>
   );
