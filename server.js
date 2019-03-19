@@ -32,7 +32,6 @@ io.on('connection', function(socket) {
     y: game_config.height - 64,
     playerId: socket.id,
     isHost: false,
-    team: (Math.floor(Math.random() * 2) == 0) ? 'red' : 'blue'
   };
 
   if(Object.keys(players).length === 1) {
@@ -46,9 +45,9 @@ io.on('connection', function(socket) {
   socket.emit('starLocation', star);
   // send the current scores
   socket.emit('scoreUpdate', scores);
-  socket.emit('updateEnemyState', enemyStates);
   // update all other players of the new player
   socket.broadcast.emit('newPlayer', players[socket.id]);
+  io.to(`${socket.id}`).emit('createEnemies', enemyStates);
 
   socket.on('disconnect', function () {
     console.log('user disconnected\n');
@@ -88,19 +87,6 @@ io.on('connection', function(socket) {
     socket.broadcast.emit('playerMoved', players[socket.id]);
   });
 
-  //Listens for when a star is collected, left over from the tutorial prototype
-  socket.on('starCollected', function () {
-    if (players[socket.id].team === 'red') {
-      scores.red += 10;
-    } else {
-      scores.blue += 10;
-    }
-    star.x = Math.floor(Math.random() * 700) + 50;
-    star.y = Math.floor(Math.random() * 500) + 50;
-    io.emit('starLocation', star);
-    io.emit('scoreUpdate', scores);
-  });
-
   //When a player fires, emit the fire location to the other players
   socket.on('playerFire', function(data) {
     socket.broadcast.emit('playerFired', data)
@@ -109,9 +95,8 @@ io.on('connection', function(socket) {
   //When a player hits an enemy, emit this to the other players
   socket.on('enemyHit', function(data){
     console.log(data);
-    var enemyData = enemyStates[data.enemyId];
-    enemyData.x = data.newX;
-    socket.broadcast.emit('hitEnemy', enemyData);
+    delete enemyStates[data.enemyId];
+    socket.broadcast.emit('hitEnemy', data);
   });
   //When the client loads the required fonts, send the client the required score data
   socket.on('fontsLoaded', function() {
@@ -119,15 +104,13 @@ io.on('connection', function(socket) {
   });
 
   socket.on('enemyState', function(enemyData) {
-    if(enemyData.kill) {
-      delete enemyStates[enemyData.id];
-      socket.emit('updateEnemyState', enemyStates);
-    }
-    else {
-      enemyStates[enemyData.id] = enemyData;
-    }
+    enemyStates[enemyData.id] = enemyData;
+    socket.broadcast.emit('updateEnemyState', enemyData);
   });
 
+  socket.on('changeGameManager', function(data) {
+    socket.broadcast.emit('updateGameManager', data);
+  })
 });
 
 server.listen(1942, function () {
