@@ -1,11 +1,12 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
+import "./Lobby.css";
 
 class Lobby extends Component {
 
   render() {
     return (
-      <div>
+      <div className="lobbyDiv">
         <h1>Lobby</h1>
         <ul>
           <li><Link to={{ pathname: '/game/1', state: { users: this.props.users } }}>Room 1</Link></li>

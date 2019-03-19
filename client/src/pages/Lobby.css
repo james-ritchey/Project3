@@ -1,0 +1,7 @@
+.lobbyDiv {
+    background: linear-gradient(to right bottom, #111C26, #522727) fixed;
+    color: white;
+    height: 100vmin;
+    padding: 20px;
+    font-family: 'Press Start 2P', cursive;
+}

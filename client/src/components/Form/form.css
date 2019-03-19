@@ -6,6 +6,10 @@
   width: 170px;
 }
 
+.submit-btn:hover {
+  background-color: #F7AC72;
+}
+
 input {
   width: 25%;
 }

@@ -42,6 +42,8 @@ class Login extends Component {
   render() {
     return (
       <div className="landing">
+      <div className="stars1"></div>
+      <div className="stars2"></div>
         <header className="landing-header">
         {this.props.user.isAuth ? <Redirect to={{ pathname:"/lobby", state: { user: this.props.user }}} /> : this.renderObj()}
         </header>
