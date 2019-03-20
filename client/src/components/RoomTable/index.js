@@ -1,18 +1,10 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
-import HighScoreTable from "../components/HighScoreTable";
 
-import "./Lobby.css";
-
-class Lobby extends Component {
-
-  render() {
-    return (
-      <div className="lobbyContainer">
-      <div className="lobbyHeader">
-      asdfasdfasdf
-      </div>
-        <div className="lobbyDiv">
+class RoomTable extends Component() {
+    render() {
+        return (
+        <div>
         <h1>Lobby</h1>
         <ul>
           <li><Link to={{ pathname: '/game/1', state: { users: this.props.users } }}>Room 1</Link></li>
@@ -27,13 +19,8 @@ class Lobby extends Component {
           <li><Link to={{ pathname: '/game/10', state: { users: this.props.users } }}>Room 10</Link></li>
         </ul>
         </div>
-        <div className="HighScoreContainer">
-        <HighScoreTable />
-        </div>
-      </div>
-    )
-  }
-
+        )
+    }
 }
 
-export default Lobby;
+export default RoomTable;

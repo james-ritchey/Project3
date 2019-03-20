@@ -1,7 +1,26 @@
-.lobbyDiv {
+* {
+    box-sizing: border-box;
+}
+
+.lobbyContainer {
+    display: flex;
     background: linear-gradient(to right bottom, #111C26, #522727) fixed;
     color: white;
     height: 100vmin;
     padding: 20px;
     font-family: 'Press Start 2P', cursive;
+}
+
+.lobbyHeader {
+    display: flex;
+}
+
+.lobbyDiv {
+    display: flex;
+    flex: 50%;
+}
+
+.HighScoreContainer {
+    display: flex;
+    flex: 50%;
 }
