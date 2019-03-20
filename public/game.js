@@ -7,7 +7,7 @@ var config = {
     physics: {
         default: 'arcade',
         arcade: {
-            debug: true,
+            debug: false,
             }
     },
     scene: {
@@ -29,6 +29,7 @@ var gameManager = {
     spawnedRows: 0,
     overallScore: 0,
     players: {},
+    scoreTexts: {},
     enemiesOnScreen: 0,
     enemies: {
         row1: [],
@@ -78,9 +79,9 @@ function create() {
         },
         active: function ()
         {
-            self.currentHost = add.text(16, 16, '', { fontSize: '32px', fill: '#ffffff', fontFamily: 'Share Tech'});
-            self.playerId = add.text(16, 48, '', { fontSize: '32px', fill: '#FF0000', fontFamily: 'Share Tech' });
-            self.socket.emit('fontsLoaded');
+            self.currentRound = add.text(16, 16, 'Round: 1', { fontSize: '32px', fill: '#ffffff', fontFamily: 'Share Tech'});
+            self.localScore = add.text(16, 48, self.socket.id + ': 0', { fontSize: '32px', fill: '#FF0000', fontFamily: 'Share Tech' });
+            //self.socket.emit('fontsLoaded');
             setScore = true;
         }
     });
@@ -136,16 +137,18 @@ function create() {
 
     this.socket.on('scoreUpdate', function (scores) {
         if(setScore) {
-            self.currentHost.setText('Round: ' + gameManager.round);
-            self.playerId.setText('Score: ' + gameManager.players[self.socket.id].score);
+            self.currentRound.setText('Round: ' + gameManager.round);
+            self.localScore.setText("" + self.socket.id + ": " + gameManager.players[self.socket.id].score);
         }
     });
 
     this.socket.on('playerFired', function(firePos) {
+        console.log(firePos);
         if(isHost) {
             var bullet = bullets.get();
             if (bullet)
             {
+                bullet.playerId = firePos.playerId;
                 bullet.fire(firePos.x, firePos.y);
             }
         }
@@ -153,6 +156,7 @@ function create() {
             var bullet = otherBullets.get();
             if (bullet)
             {
+                bullet.playerId = firePos.playerId;
                 bullet.fire(firePos.x, firePos.y);
             }
         }
@@ -160,7 +164,7 @@ function create() {
     });
 
     this.socket.on('hitEnemy', function(data){
-        enemies.getChildren()[data.enemyId].hit();
+        enemies.getChildren()[data.enemyId].hit(data.playerId);
     });
 
     this.socket.on('updateEnemyState', function(enemyData) {
@@ -177,7 +181,21 @@ function create() {
     });
 
     this.socket.on('updateGameManager', function(gameData) {
-        gameManager = gameData
+        console.log(gameData);
+        gameManager.round = gameData.round;
+        gameManager.enemiesOnScreen = gameData.enemiesOnScreen;
+        gameManager.players = gameData.players;
+        if(setScore) {
+            self.currentRound.setText("Round: " + gameManager.round);
+            Object.keys(gameManager.players).forEach(function(playerId){
+                if(playerId === self.socket.id){
+                    self.localScore.setText("" + self.socket.id + ": " + gameManager.players[self.socket.id].score);
+                }
+                else {
+                    gameManager.scoreTexts[playerId].setText(playerId + ": " + gameManager.players[playerId].score);
+                }
+            })
+        }
     })
 
     //Class creation for the Bullet class
@@ -228,13 +246,14 @@ function create() {
             this.setPosition(x, y);
             this.setActive(true);
             this.setVisible(true);
+            this.firingTimer = self.time.now + 2000;
             this.setDisplaySize(99 / scale, 90 / scale);
             if(isHost && this.isAlive) {
                 this.body.setVelocityX(this.speed * this.direction);            
             }
         },
 
-
+        
         update: function (time, delta){
             if(isHost) {
                 if(this.isAlive) {
@@ -249,6 +268,9 @@ function create() {
     
                     if(this.body.velocity.x === 0) {
                         this.body.setVelocityX(this.speed * this.direction);
+                    }
+                    if(this.firingTimer <= time) {
+                        this.shoot();
                     }
                 }
 
@@ -267,7 +289,7 @@ function create() {
 
         },
 
-        hit: function(x, y, bullet, enemy) {
+        hit: function(playerId) {
             if(isHost) {
                 this.isAlive = false;
                 this.setPosition(400, -100);
@@ -278,31 +300,43 @@ function create() {
                 }
                 gameManager.enemiesOnScreen = gameManager.enemiesOnScreen - 1;
             }
-
+            gameManager.players[playerId].score += this.score;
+            console.log(gameManager.scoreTexts);
+            if(playerId === self.socket.id){
+                self.localScore.setText("" + self.socket.id + ": " + gameManager.players[self.socket.id].score);
+            }
+            else {
+                gameManager.scoreTexts[playerId].setText(playerId + ": " + gameManager.players[playerId].score);
+            }
         },
 
         setState: function(data) {
-                if(data.speed) {
-                    this.speed = data.speed;
-                }
-                if(data.x) {
-                    this.x = data.x;
-                }
-                if(data.y){
-                    this.y = data.y;
-                }
-                if(data.id) {
-                    this.id = data.id;
-                }
-                if(data.direction) {
-                    this.direction = data.direction;
-                }
-                if(data.row) {
-                    this.row = data.row;
-                }
-                if(data.isAlive) {
-                    this.isAlive = data.isAlive;
-                }
+            if(data.speed) {
+                this.speed = data.speed;
+            }
+            if(data.x) {
+                this.x = data.x;
+            }
+            if(data.y){
+                this.y = data.y;
+            }
+            if(data.id) {
+                this.id = data.id;
+            }
+            if(data.direction) {
+                this.direction = data.direction;
+            }
+            if(data.row) {
+                this.row = data.row;
+            }
+            if(data.isAlive) {
+                this.isAlive = data.isAlive;
+            }
+        },
+
+        shoot: function() {
+            console.log(this.id + " is shootsting");
+            this.firingTimer = self.time.now + (Math.random() * 2000) + 1000;
         }
 
     });
@@ -334,10 +368,11 @@ function create() {
     
     //The function called when the local player hits an enemy
     function enemyHit(bullet, enemy) {
+        console.log(bullet.playerId);
         bullet.destroy();
-        self.socket.emit('enemyHit', { enemyId: enemy.id});
+        self.socket.emit('enemyHit', { enemyId: enemy.id, playerId: bullet.playerId });
         //self.socket.emit('enemyState', {id: this.id, kill: true});
-        enemy.hit();
+        enemy.hit(bullet.playerId);
     };
 
     createEnemies(enemies);
@@ -346,10 +381,8 @@ function create() {
 
 var playerSpeed = 4;
 
-
-
-
 function update() {
+    var self = this;
     //Player controls including movement and firing
     if (this.ship) {
         if (this.cursors.left.isDown && this.ship.x > 50) {
@@ -361,14 +394,18 @@ function update() {
         //The player fires when they press the fire button, currently the 'space bar'
         if (Phaser.Input.Keyboard.JustDown(fireButton))
         {
+            console.log(gameManager);
             if(isHost) {
+                
                 var bullet = bullets.get();
                 if (bullet)
                 {
                     bullet.fire(this.ship.x, this.ship.y);
+                    bullet.playerId = this.socket.id;
                     var bulletLoc = {
                         x: this.ship.x,
-                        y: this.ship.y
+                        y: this.ship.y,
+                        playerId: bullet.playerId
                     }
                     this.socket.emit('playerFire', bulletLoc);
                 }
@@ -378,9 +415,11 @@ function update() {
                 if (bullet)
                 {
                     bullet.fire(this.ship.x, this.ship.y);
+                    bullet.playerId = this.socket.id;
                     var bulletLoc = {
                         x: this.ship.x,
-                        y: this.ship.y
+                        y: this.ship.y,
+                        playerId: bullet.playerId
                     }
                     this.socket.emit('playerFire', bulletLoc);
                 }
@@ -407,6 +446,8 @@ function update() {
         if(gameManager.started && gameManager.enemiesOnScreen <= 0 && gameManager.spawnedRows === gameManager.round) {
             gameManager.round++;
             newRound(gameManager.round);
+            self.currentRound.setText("Round: " + gameManager.round);
+            this.socket.emit('changeGameManager', gameManager);
         }
         if(!gameManager.started) {
             console.log("Starting game");
@@ -520,7 +561,7 @@ function spawnRow(row) {
 }
 
 //Starts the next round
-function newRound(round) {
+function newRound(round, game) {
     console.log(round);
     gameManager.spawnedRows = 0;
     var rowsToSpawn;
@@ -562,5 +603,8 @@ function addOtherPlayers(self, playerInfo) {
     otherPlayer.playerId = playerInfo.playerId;
     self.otherPlayers.add(otherPlayer);
     gameManager.players[otherPlayer.playerId] = { score: 0 };
-
+    gameManager.scoreTexts[otherPlayer.playerId] = self.add.text(16, 72 + (24 * Object.keys(gameManager.scoreTexts).length), otherPlayer.playerId + ": 0", { fontSize: '32px', fill: '#FF0000', fontFamily: 'Share Tech' });
+    if(isHost) {
+        self.socket.emit('changeGameManager', gameManager);
+    }
 }

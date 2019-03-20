@@ -6,17 +6,6 @@ var players = {};
 var game_config = require("./public/game_config.json");
 // var sockets = require("./routes/sockets.js");
 
-var star = {
-  x: Math.floor(Math.random() * 700) + 50,
-  y: Math.floor(Math.random() * 500) + 50
-};
-var scores = {
-  scores: [],
-  host: "no one"
-};
-
-var enemyStates = {};
-
 app.use(express.static(__dirname + '/public'));
  
 app.get('/', function (req, res) {
@@ -41,13 +30,10 @@ io.on('connection', function(socket) {
 
   // send the players object to the new player
   socket.emit('currentPlayers', players);
-  // send the star object to the new player
-  socket.emit('starLocation', star);
   // send the current scores
   socket.emit('scoreUpdate', scores);
   // update all other players of the new player
   socket.broadcast.emit('newPlayer', players[socket.id]);
-  io.to(`${socket.id}`).emit('createEnemies', enemyStates);
 
   socket.on('disconnect', function () {
     console.log('user disconnected\n');
@@ -94,21 +80,23 @@ io.on('connection', function(socket) {
 
   //When a player hits an enemy, emit this to the other players
   socket.on('enemyHit', function(data){
-    console.log(data);
+    //console.log(data);
     delete enemyStates[data.enemyId];
     socket.broadcast.emit('hitEnemy', data);
   });
+
   //When the client loads the required fonts, send the client the required score data
   socket.on('fontsLoaded', function() {
     io.to(`${socket.id}`).emit('scoreUpdate', scores);
   });
 
   socket.on('enemyState', function(enemyData) {
-    enemyStates[enemyData.id] = enemyData;
+    //enemyStates[enemyData.id] = enemyData;
     socket.broadcast.emit('updateEnemyState', enemyData);
   });
 
   socket.on('changeGameManager', function(data) {
+    console.log("Sending GameManager");
     socket.broadcast.emit('updateGameManager', data);
   })
 });
