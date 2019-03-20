@@ -15,6 +15,10 @@ const Users = {
       username: username,
       password: password
     }).then(res => cb(res));
+  },
+  hiscores: (limit, cb) => {
+    axios.get(`${userURL}/hiscores?limit=${limit}`)
+      .then(res => cb(res))
   }
   
 }

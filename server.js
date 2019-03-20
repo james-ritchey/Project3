@@ -38,6 +38,7 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 require('./config/passport.js')(passport);
 
 var server = require('http').Server(app);
+
 var io = require('socket.io').listen(server);
 io.on("connection", (socket) => {
   require('./routes/sockets')(socket, io);

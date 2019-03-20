@@ -4,6 +4,8 @@ const passport = require('passport')
 
 // Matches with '/api/users'
 router.post('/signup', ({ body }, res) => {
+  body.hiscore = Math.floor(Math.random() * 1000000) + 1;
+  console.log(body);
   User.create(body, (err, data) => {
     if (err) {
       if (err.name === 'MongoError' && err.code === 11000) {
@@ -28,6 +30,14 @@ router.post('/login', passport.authenticate('local'), (req, res) => {
     'username': req.user.username
   };
   res.json(userObject);
+});
+
+router.get('/hiscores', (req, res) => {
+  const { limit } = req.query;
+  User.hiscores(parseInt(limit), (err, data) => {
+    res.json(data);
+  });
+
 });
 
 module.exports = router;

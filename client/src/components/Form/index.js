@@ -1,6 +1,4 @@
 import React from 'react';
-import loginNav from '../../img/login_nav.svg';
-import signUpNav from '../../img/signup_nav.svg';
 import './form.css';
 
 export const Form = ({ onSubmit, formBtntext, loginSignupState }) => {
