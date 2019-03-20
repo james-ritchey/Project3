@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import { Link } from "react-router-dom";
 import HighScoreTable from "../components/HighScoreTable";
 import RoomTable from "../components/RoomTable";
 import "./Lobby.css";
