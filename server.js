@@ -1,118 +1,96 @@
-var express = require('express');
-var app = express();
+const express = require('express');
+const mongoose = require('mongoose');
+const passport = require('passport');
+const routes = require('./routes');
+const session = require('express-session');
+
+const PORT = 4000;
+
+
+const app = express();
+
+const mongoDB = 'mongodb://127.0.0.1/project3';
+mongoose.connect(mongoDB, { useNewUrlParser: true });
+mongoose.Promise = global.Promise;
+const db = mongoose.connection;
+
+app.use(session({
+  secret: 'ldjaisudnjdkalnasdfwpienlakjs',
+  resave: false, //required
+  saveUninitialized: false //required
+}));
+
+app.use(express.static('public'));
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(routes);
+
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+
+//Load in passport config
+require('./config/passport.js')(passport);
+
 var server = require('http').Server(app);
 var io = require('socket.io').listen(server);
+
+var games = [];
+
 var players = {};
-var game_config = require("./public/game_config.json");
-// var sockets = require("./routes/sockets.js");
 
-var star = {
-  x: Math.floor(Math.random() * 700) + 50,
-  y: Math.floor(Math.random() * 500) + 50
-};
-var scores = {
-  scores: [],
-  host: "no one"
-};
-
-var enemyStates = {};
-
-app.use(express.static(__dirname + '/public'));
- 
-app.get('/', function (req, res) {
-  res.sendFile(__dirname + '/client/index.html');
-});
-
-io.on('connection', function(socket) {
-  // sockets(socket);
-  console.log('a user connected\n');
-  // create a new player and add it to our players object
+io.on("connection", (socket) => {
+  // On connection, client will join to the Lobby socket.io room.
+  socket.join('lobby');
+  // create player
   players[socket.id] = {
-    x: game_config.width / 2,
-    y: game_config.height - 64,
+    roomId: 'lobby',
     playerId: socket.id,
-    isHost: false,
+    isHost: false
   };
-
-  if(Object.keys(players).length === 1) {
-    players[socket.id].isHost = true;
-    scores.host = socket.id;
-  }
-
-  // send the players object to the new player
-  socket.emit('currentPlayers', players);
-  // send the star object to the new player
-  socket.emit('starLocation', star);
-  // send the current scores
-  socket.emit('scoreUpdate', scores);
-  // update all other players of the new player
-  socket.broadcast.emit('newPlayer', players[socket.id]);
-  io.to(`${socket.id}`).emit('createEnemies', enemyStates);
-
-  socket.on('disconnect', function () {
-    console.log('user disconnected\n');
-    //If the disconnecting player was the host, find a new one
-    if(players[socket.id].isHost ) {
-      // remove this player from our players object
-      delete players[socket.id];
-      //Only chooses a new host if there's a connected player
-      if(Object.keys(players).length > 0) {
-        //Randomly choose a new host and change the isHost value to 'true'
-        var playerKeys = Object.keys(players);
-        var newHostIndex = Math.floor(Math.random() * playerKeys.length);
-        players[playerKeys[newHostIndex]].isHost = true;
-        scores.host = playerKeys[newHostIndex];
-        //Emit the new host data to the remaining players
-        io.emit('scoreUpdate', scores);
-        socket.broadcast.emit('hostAssigned', players[playerKeys[newHostIndex]]);
-        console.log("\nNew Host is being Selected\n");
-      }
-    }
-    else {
-      // remove this player from our players object
-      delete players[socket.id];
-    }
-    if(Object.keys(players).length <= 0) {
-      enemyStates = {};
-    }
-    // emit a message to all players to remove this player
-    io.emit('disconnect', socket.id);
+  // Emit the "userJoined" event to all OTHER connected clients in the main lobby, so we can update the display of connected users.
+  socket.to("lobby").emit("userJoined", {});
+  // createGame event received from frontend.
+  socket.on('createGame', function() {
+    // randomly generated gameId - to do a socket.join to that room and leave the lobby.
+    var gameId = (Math.random()+1).toString(36).slice(2, 18);
+    // join client to newly generated game
+    socket.join(gameId);
+    // update player roomId to gameId
+    players[socket.id].roomId = gameId;
+    // drop player from lobby
+    socket.leave('lobby');
+    // bring in the sockets file for phaser socket stuff.
+    require('./routes/sockets')(socket, io);
+    // emit a 'gameCreated' event to the frontend in order to display the game lobby to all connected users
+    io.to('lobby').emit('gameCreated', {
+      gameId: gameId
+    });
   });
 
-  // when a player moves, update the player data
-  socket.on('playerMovement', function (movementData) {
-    players[socket.id].x = movementData.x;
-    players[socket.id].y = movementData.y;
-    // emit a message to all players about the player that moved
-    socket.broadcast.emit('playerMoved', players[socket.id]);
+  // joinGame event received from frontend.  'data' variable will contain the gameId, which is stored as a data attribute in the link used to join the active game session.
+  socket.on('joinGame', function(data) {
+    // join client to existing game session - room name is the gameId value, pulled from the data attribute in the link used to join the game.
+    socket.join(data.gameId);
+    // set the roomId key:value pair of the player object to the gameId value for later socket use/reference.
+    players[socket.id].roomId = data.gameId;
+    // drop player from lobby
+    socket.leave('lobby');
+    // bring in the separate sockets file for phaser socket stuff
+    require('./routes/sockets')(socket, io);
+    // emit 'gameJoined' event to frontend clients still in the lobby.
+    io.to('lobby').emit('gameJoined');
   });
-
-  //When a player fires, emit the fire location to the other players
-  socket.on('playerFire', function(data) {
-    socket.broadcast.emit('playerFired', data)
-  });
-
-  //When a player hits an enemy, emit this to the other players
-  socket.on('enemyHit', function(data){
-    console.log(data);
-    delete enemyStates[data.enemyId];
-    socket.broadcast.emit('hitEnemy', data);
-  });
-  //When the client loads the required fonts, send the client the required score data
-  socket.on('fontsLoaded', function() {
-    io.to(`${socket.id}`).emit('scoreUpdate', scores);
-  });
-
-  socket.on('enemyState', function(enemyData) {
-    enemyStates[enemyData.id] = enemyData;
-    socket.broadcast.emit('updateEnemyState', enemyData);
-  });
-
-  socket.on('changeGameManager', function(data) {
-    socket.broadcast.emit('updateGameManager', data);
-  })
 });
 
-server.listen(1942, function () {
-  console.log(`Listening on ${server.address().port}`);
+
+server.listen(PORT, (err) => {
+  if (err) throw err;
+
+  console.log(`Backend on port ${PORT}`);
 });
