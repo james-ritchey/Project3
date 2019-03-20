@@ -27,7 +27,7 @@ var scale = 2.5;
 var gameManager = {
     round: 1,
     spawnedRows: 0,
-    overallScore: 0,
+    //Scores are held here under the player socket ID
     players: {},
     scoreTexts: {},
     enemiesOnScreen: 0,
