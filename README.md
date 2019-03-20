@@ -26,15 +26,25 @@ Voyager is inspired by some of your favorite classic arcade games, with a wonder
 ###### Credits
 
 [James Ritchey](https://github.com/james-ritchey) - Game and AI development
+
 [Mike Feller](https://github.com/MikeF-Code) - Socket.io / multiplayer implementation
+
 [Chris Killen](https://github.com/CKillen) - Account System (including database) / React.js integration
+
 [Yobany Perez](https://github.com/yobany10) - Art / Design / React.js integration
 
+
 [phaser.io](https://phaser.io) - HTML5 based game engine
+
 [socket.io](https://socket.io) - Websockets framework
+
 [React.js](https://reactjs.org) - Component-based frontend framework
+
 [node.js](https://nodejs.org) - Server-side javascript runtime
+
 [express](https://expressjs.com) - node.js based webserver
+
 [MongoDB](https://www.mongodb.com/) - NoSQL based database
+
 
 Everyone who has played this labor of love from the Voyager team - thank you!
