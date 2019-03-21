@@ -772,7 +772,6 @@ export class Game extends Component {
   render() {
     return (
       <div className="phaser-div">
-        <h1>{console.log(this.props)}</h1>
         <div id="phaser-game"></div>
       </div>
       

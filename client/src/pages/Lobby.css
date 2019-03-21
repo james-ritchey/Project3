@@ -4,6 +4,8 @@
 
 .lobbyContainer {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
     background: linear-gradient(to right bottom, #111C26, #522727) fixed;
     color: white;
     height: 100vmin;
@@ -11,16 +13,50 @@
     font-family: 'Press Start 2P', cursive;
 }
 
-.lobbyHeader {
-    display: flex;
-}
-
 .lobbyDiv {
-    display: flex;
-    flex: 50%;
+    flex: 30%;
+    padding-left: 30px;
+    padding-right: 30px;
+    margin-top: 20px;
+    background-image: url(../img/stars1.svg);
+    background-repeat: repeat;
+
+    animation: slide 40s linear infinite;
+}
+.lobbyDiv ul {
+    border-top: #F15A24 solid 4px;
+    border-bottom: #F15A24 solid 4px;
+    padding: 20px;
+    background: rgba(0, 0, 0, .2);
+}
+.lobbyDiv h3 {
+    color: #F3E3AC;
+}
+.lobbyDiv :any-link {
+    color: white !important;
 }
 
 .HighScoreContainer {
-    display: flex;
-    flex: 50%;
+    flex: 30%;
+    padding-left: 30px;
+    padding-right: 30px;
+    margin-top: 20px;
+    background-image: url(../img/stars1.svg);
+    background-repeat: repeat;
+
+    animation: slide 40s linear infinite;
 }
+.HighScoreContainer ul {
+    border-top: #F15A24 solid 4px;
+    border-bottom: #F15A24 solid 4px;
+    padding: 20px;
+    background: rgba(0, 0, 0, .2);
+}
+.HighScoreContainer h3 {
+    color: #F3E3AC;
+}
+
+@keyframes slide {
+    from { background-position: 0 0; }
+    to { background-position: 0 400px; }
+  }

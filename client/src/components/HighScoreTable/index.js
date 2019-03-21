@@ -35,7 +35,7 @@ class HighScoreTable extends Component {
     return (
       <div>
         {console.log("render")}
-        <h1>High Scores</h1>
+        <h3>High Scores</h3>
         <ul>
           {this.hiscoreList()}
         </ul>
