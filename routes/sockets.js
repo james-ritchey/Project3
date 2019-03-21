@@ -70,6 +70,11 @@ socket.on('playerFire', function(data) {
   socket.broadcast.emit('playerFired', data)
 });
 
+//When an enemy fires, emit the fire location to the other players
+socket.on('enemyShoot', function(data) {
+  socket.broadcast.emit('enemyFired', data)
+});
+
 //When a player hits an enemy, emit this to the other players
 socket.on('enemyHit', function(data){
   //console.log(data);

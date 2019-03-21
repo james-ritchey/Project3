@@ -25,16 +25,18 @@ export class Game extends Component {
 
     var game = new Phaser.Game(config);
     var fireButton;
-    var bullets;
+    var resetButton;
     var isHost = false;
     var enemyData = {};
     var scale = 2.5;
 
     var gameManager = {
+        started: false,
       round: 1,
       spawnedRows: 0,
       //Scores are held here under the player socket ID
       players: {},
+      numOfDeadPlayers: 0,
       scoreTexts: {},
       enemiesOnScreen: 0,
       enemies: {
@@ -75,18 +77,18 @@ export class Game extends Component {
     var enemies = null;
     var otherBullets = null;
     var enemyBullets = null;
-    
     // Create function for the Phaser engine
     function create() {
       
       var self = this;
       var add = this.add;
       var setScore = false;
-
+        this.gameOver = false;
       addBackground(self);
       
       this.socket = openSocket('http://localhost:4000');
       this.otherPlayers = this.physics.add.group();
+      this.playerGroup = this.physics.add.group();
     // eslint-disable-next-line
       WebFont.load({
           google: {
@@ -96,6 +98,8 @@ export class Game extends Component {
           {
               self.currentRound = add.text(16, 16, 'Round: 1', { fontSize: '32px', fill: '#ffffff', fontFamily: 'Share Tech'});
               self.localScore = add.text(16, 48, gameManager.players[self.socket.id].name + ": 0", { fontSize: '32px', fill: '#FF0000', fontFamily: 'Share Tech' });
+              self.livesText = add.text(config.width - 112, 16, 'Lives: 3', {fontSize: "32px", fill: "#ffffff", fontFamily: 'Share Tech', align: 'right'});
+              self.gameOverText = add.text(config.width / 5, config.height / 3, '', {fontSize: "64px", fill: "#ffffff", fontFamily: 'Share Tech', align: 'center'});
               //self.socket.emit('fontsLoaded');
               setScore = true;
           }
@@ -142,6 +146,7 @@ export class Game extends Component {
 
       this.cursors = this.input.keyboard.createCursorKeys();
       fireButton = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+      resetButton = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
 
       this.socket.on('playerMoved', function (playerInfo) {
           self.otherPlayers.getChildren().forEach(function (otherPlayer) {
@@ -162,7 +167,7 @@ export class Game extends Component {
       });
 
       this.socket.on('playerFired', function(firePos) {
-          console.log(firePos);
+          //console.log(firePos);
           if(isHost) {
               var bullet = bullets.get();
               if (bullet)
@@ -182,19 +187,27 @@ export class Game extends Component {
 
       });
 
+      this.socket.on('enemyFired', function(firePos){
+        var bullet = enemyBullets.get();
+        if(bullet) {
+            bullet.fire(firePos.x, firePos.y);
+        }
+      });
+
       this.socket.on('hitEnemy', function(data){
           enemies.getChildren()[data.enemyId].hit(data.playerId);
       });
 
       this.socket.on('updateEnemyState', function(enemyData) {
           if(!isHost) {
-              var enemyArray = enemies.getChildren();
+              enemies.getChildren()[enemyData.id].setState(enemyData);
+            //   var enemyArray = enemies.getChildren();
 
-              enemyArray.forEach(function(enemy) {
-                  if(enemy.id === enemyData.id) {
-                      enemy.setState(enemyData);
-                  }
-              });
+            //   enemyArray.forEach(function(enemy) {
+            //       if(enemy.id === enemyData.id) {
+            //           enemy.setState(enemyData);
+            //       }
+            //   });
           }
 
       });
@@ -253,7 +266,7 @@ export class Game extends Component {
 
         function Bullet (scene){
             Phaser.GameObjects.Image.call(this, scene, 0, 0, 'enemyBullet');
-            this.speed = Phaser.Math.GetSpeed(600, 1);
+            this.speed = Phaser.Math.GetSpeed(600, 1.5);
         },
 
         fire: function (x, y){
@@ -293,7 +306,7 @@ export class Game extends Component {
               this.firingTimer = self.time.now + (Math.random() * 2000) + 2000;
               this.setDisplaySize(99 / scale, 90 / scale);
               if(isHost && this.isAlive) {
-                  this.body.setVelocityX(this.speed * this.direction);            
+                  //this.body.setVelocityX(this.speed * this.direction);            
               }
           },
 
@@ -310,14 +323,21 @@ export class Game extends Component {
                           this.body.setVelocityX(this.speed * this.direction);
                       }
       
-                      if(this.body.velocity.x === 0) {
+                      if(this.body.velocity.x === 0 && this.body.velocity.y === 0) {
                           this.body.setVelocityX(this.speed * this.direction);
                       }
                       if(this.firingTimer <= time) {
                           this.shoot();
                       }
+                      if(this.y >= this.targetY) {
+                          this.body.setVelocityY(0);
+                          this.body.setVelocityX(this.speed * this.direction);
+                      }
                   }
-
+                  else {
+                      this.body.setVelocityX(0);
+                      this.body.setVelocityY(0);
+                  }
 
                   var state = {
                       id: this.id,
@@ -383,7 +403,26 @@ export class Game extends Component {
               if(bullet) {
                   bullet.fire(this.x, this.y);
               }
+              this.firingTimer = self.time.now + ((Math.random()) * 4000) + 3000;
+              self.socket.emit('enemyShoot', {x: this.x, y: this.y, enemyId: this.id});
+          },
+
+          spawn: function(targetY) {
               this.firingTimer = self.time.now + ((Math.random() + 0.1) * 3000) + 3000;
+              this.targetY = targetY;
+              this.body.setVelocityY(this.speed);
+          },
+          
+          clear: function() {
+            if(isHost) {
+                this.isAlive = false;
+                this.setPosition(400, -100);
+                this.group.splice(this.group.indexOf(this), 1);
+                gameManager.enemies.dead[this.row].push(this);
+                gameManager.enemiesOnScreen = 0;
+                this.body.setVelocityX(0);
+                this.body.setVelocityY(0);
+            }
           }
 
       });
@@ -418,6 +457,11 @@ export class Game extends Component {
       this.physics.add.overlap(otherBullets, enemies, function(bullet, enemy) {
           bullet.destroy();
       });
+      this.physics.add.overlap(enemyBullets, self.playerGroup, playerHit);
+      this.physics.add.overlap(enemyBullets, bullets, function(enemyBullet, bullet) {
+          bullet.destroy();
+          enemyBullet.destroy();
+      })
       
       //The function called when the local player hits an enemy
       function enemyHit(bullet, enemy) {
@@ -428,11 +472,24 @@ export class Game extends Component {
           enemy.hit(bullet.playerId);
       };
 
+      function playerHit(enemyBullet, player) {
+        console.log(player);
+        enemyBullet.destroy();
+        gameManager.players[player.playerId].lives -= 1;
+        self.livesText.setText("Lives: " + gameManager.players[player.playerId].lives);
+        if(gameManager.players[player.playerId].lives <= 0) {
+            gameManager.numOfDeadPlayers += 1;
+            if(gameManager.numOfDeadPlayers === Object.keys(gameManager.players).length){
+                gameOver(self);
+            }
+        }
+      }
+
       createEnemies(enemies);
     // === End of the create() function ===
     }
 
-    var playerSpeed = 4;
+    var playerSpeed = 6;
 
     function update() {
       var self = this;
@@ -479,7 +536,7 @@ export class Game extends Component {
               }
 
           }
-
+          
           // emit player movement
           var x = this.ship.x;
           var y = this.ship.y;
@@ -502,11 +559,14 @@ export class Game extends Component {
               self.currentRound.setText("Round: " + gameManager.round);
               this.socket.emit('changeGameManager', gameManager);
           }
-          if(!gameManager.started) {
+          if(!gameManager.started && !self.gameOver) {
               console.log("Starting game");
               gameManager.started = true;
               newRound(gameManager.round); 
           }
+          if(this.gameOver && Phaser.Input.Keyboard.JustDown(resetButton)) {
+            restartGame(self);
+        }
       }
 
       this.stars1.tilePositionY -= 2;
@@ -593,22 +653,26 @@ export class Game extends Component {
           for(var i = 0; i < 6; i++) {
               var enemy = gameManager.enemies.dead[row].pop();
               gameManager.enemies["" + row].push(enemy);
-              enemy.setPosition(75 + (50 * i), height);
+              enemy.setPosition(75 + (50 * i), -height);
               enemy.isAlive = true;
               enemy.direction = 1;
+              enemy.spawn(height);
               if(isHost) {
                   enemy.body.setVelocityX(enemy.direction * enemy.speed);
+                  enemy.body.setVelocityY(enemy.speed);
               }        
               gameManager.enemiesOnScreen = gameManager.enemiesOnScreen + 1;
           }
       }
       else{
           gameManager.enemies[row].forEach(function(enemy, index) {
-              enemy.setPosition(75 + (50 * index), height);
+              enemy.setPosition(75 + (50 * index), -height);
               enemy.isAlive = true;
               enemy.direction = 1;
+              enemy.spawn(height);
               if(isHost) {
                   enemy.body.setVelocityX(enemy.direction * enemy.speed);
+                  enemy.body.setVelocityY(enemy.speed);
               }
               gameManager.enemiesOnScreen = gameManager.enemiesOnScreen + 1;
           });
@@ -633,21 +697,34 @@ export class Game extends Component {
       }
     }
 
+    function gameOver(game) {
+        game.gameOver = true;
+        gameManager.started = false;
+        game.gameOverText.setText('GAME OVER\n(Press \'R\' to restart)');
+    }
 
-    // function spawnAtLocation(type, enemyData, game) {
-    //     var enemy = type.get(); 
-    //     if(enemy) {
-    //         //enemy.setState(enemyData);
-    //         enemy.row = enemyData.row;
-    //         enemy.group = gameManager.enemies[enemyData.row];
-    //         enemy.direction = enemyData.direction;
-    //         gameManager.enemies[enemyData.row].push(enemy);
-    //         enemy.create(enemyData.x, enemyData.y);
-    //     }
-    // }
+    function restartGame(game) {
+        console.log("RESET ME");
+        gameManager.round = 1;
+        gameManager.spawnedRows = 0;
+        game.currentRound.setText("Round: " + gameManager.round);
+        Object.keys(gameManager.players).forEach(function(key) {
+            gameManager.players[key].score = 0;
+            gameManager.players[key].lives = 3;
+        });
+        game.livesText.setText("Lives: " + gameManager.players[game.socket.id].lives)
+        game.localScore.setText(gameManager.players[game.socket.id].name + ": " + gameManager.players[game.socket.id].score);
+        Object.keys(gameManager.scoreTexts).forEach(function(key) {
+            gameManager.scoreTexts[key].setText(gameManager.players[key].name + ": " + gameManager.players[key].score);
+        });
+        enemies.getChildren().forEach(function(enemy) {
+            enemy.clear();
+        });
+        game.gameOverText.setText("");
+        game.gameOver = false;
+    }
 
     function addBackground(game) {
-        console.log("in background adding");
         game.background = game.add.tileSprite(400, 300, 800, 600, 'background').setDepth(-3);
         game.stars1 = game.add.tileSprite(400, 300, 800, 600, 'stars1').setDepth(-2);
         game.stars2 = game.add.tileSprite(400, 300, 800, 600, 'stars2').setDepth(-1);
@@ -659,16 +736,19 @@ export class Game extends Component {
       }
       self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setDisplaySize(135 / scale, 90 / scale);
       self.ship.setDepth(1);
+      self.ship.playerId = self.socket.id;
       var playerNum = (Object.keys(gameManager.players).length + 1);
-      gameManager.players[self.socket.id] = { score: 0, name: "Player " + playerNum};
+      gameManager.players[self.socket.id] = { score: 0, name: "Player " + playerNum, lives: 3};
+      self.playerGroup.add(self.ship);
     }
 
     function addOtherPlayers(self, playerInfo) {
       const otherPlayer = self.physics.add.image(playerInfo.x, playerInfo.y, 'otherShip').setOrigin(0.5, 0.5).setDisplaySize(135 / scale, 90 / scale);
       otherPlayer.playerId = playerInfo.playerId;
       self.otherPlayers.add(otherPlayer);
+      self.playerGroup.add(otherPlayer);
       var playerNum = (Object.keys(gameManager.players).length + 1);
-      gameManager.players[otherPlayer.playerId] = { score: 0, name: "Player " + playerNum };
+      gameManager.players[otherPlayer.playerId] = { score: 0, name: "Player " + playerNum, lives: 3 };
       gameManager.scoreTexts[otherPlayer.playerId] = self.add.text(16, 72 + (24 * Object.keys(gameManager.scoreTexts).length), gameManager.players[otherPlayer.playerId].name + ": 0", { fontSize: '32px', fill: '#FF0000', fontFamily: 'Share Tech' });
       if(isHost) {
           self.socket.emit('changeGameManager', gameManager);
