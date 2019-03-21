@@ -7,6 +7,7 @@ class RoomTable extends Component {
     render() {
         return (
             <div>
+                <h3>Lobby</h3>
                 <ul>
                 <li><Link to={{ pathname: '/game/1', state: { users: this.props.user } }}>Room 1</Link></li>
                 <li><Link to={{ pathname: '/game/2', state: { users: this.props.user } }}>Room 2</Link></li>
