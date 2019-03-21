@@ -65,11 +65,16 @@ export class Game extends Component {
       this.load.image('otherShip', 'assets/player2.png');
       this.load.image('enemy', 'assets/enemy1.png');
       this.load.image('bullet', 'assets/bullet_player.png');
+      this.load.image('enemyBullet', 'assets/bullet_enemy.png');
+      this.load.image('background', 'assets/voyager_game_bg.png');
+      this.load.image('stars1', "assets/voyager_game_stars1.png");
+      this.load.image('stars2', "assets/voyager_game_stars2.png");
     }
 
     var bullets = null;
     var enemies = null;
     var otherBullets = null;
+    var enemyBullets = null;
     
     // Create function for the Phaser engine
     function create() {
@@ -78,7 +83,7 @@ export class Game extends Component {
       var add = this.add;
       var setScore = false;
 
-      
+      addBackground(self);
       
       this.socket = openSocket('http://localhost:4000');
       this.otherPlayers = this.physics.add.group();
@@ -90,7 +95,7 @@ export class Game extends Component {
           active: function ()
           {
               self.currentRound = add.text(16, 16, 'Round: 1', { fontSize: '32px', fill: '#ffffff', fontFamily: 'Share Tech'});
-              self.localScore = add.text(16, 48, self.socket.id + ': 0', { fontSize: '32px', fill: '#FF0000', fontFamily: 'Share Tech' });
+              self.localScore = add.text(16, 48, gameManager.players[self.socket.id].name + ": 0", { fontSize: '32px', fill: '#FF0000', fontFamily: 'Share Tech' });
               //self.socket.emit('fontsLoaded');
               setScore = true;
           }
@@ -149,8 +154,11 @@ export class Game extends Component {
       this.socket.on('scoreUpdate', function () {
           if(setScore) {
               self.currentRound.setText('Round: ' + gameManager.round);
-              self.localScore.setText("" + self.socket.id + ": " + gameManager.players[self.socket.id].score);
-          }
+              self.localScore.setText(gameManager.players[self.socket.id].name + ": " + gameManager.players[self.socket.id].score);
+                Object.keys(gameManager.scoreTexts).forEach(function(key) {
+                    gameManager.scoreTexts[key].setText(gameManager.players[key].name + ": " + gameManager.players[key].score)
+                })
+            }
       });
 
       this.socket.on('playerFired', function(firePos) {
@@ -200,10 +208,10 @@ export class Game extends Component {
               self.currentRound.setText("Round: " + gameManager.round);
               Object.keys(gameManager.players).forEach(function(playerId){
                   if(playerId === self.socket.id){
-                      self.localScore.setText("" + self.socket.id + ": " + gameManager.players[self.socket.id].score);
+                      self.localScore.setText(gameManager.players[playerId].name + ": " + gameManager.players[self.socket.id].score);
                   }
                   else {
-                      gameManager.scoreTexts[playerId].setText(playerId + ": " + gameManager.players[playerId].score);
+                      gameManager.scoreTexts[playerId].setText(gameManager.players[playerId].name + ": " + gameManager.players[playerId].score);
                   }
               })
           }
@@ -236,6 +244,33 @@ export class Game extends Component {
           }
 
       });
+      //Class creation for the Bullet class
+      var EnemyBullet = new Phaser.Class({
+              
+        Extends: Phaser.GameObjects.Image,
+
+        initialize:
+
+        function Bullet (scene){
+            Phaser.GameObjects.Image.call(this, scene, 0, 0, 'enemyBullet');
+            this.speed = Phaser.Math.GetSpeed(600, 1);
+        },
+
+        fire: function (x, y){
+            this.setPosition(x, y);
+            this.setActive(true);
+            this.setVisible(true);
+        },
+
+        update: function (time, delta){
+            this.y += this.speed * delta;
+
+            if (this.y > config.height){
+                this.destroy();
+            }
+        }
+
+    });
       //Class creation for the Enemy class
       var Enemy = new Phaser.Class({
 
@@ -255,7 +290,7 @@ export class Game extends Component {
               this.setPosition(x, y);
               this.setActive(true);
               this.setVisible(true);
-              this.firingTimer = self.time.now + 2000;
+              this.firingTimer = self.time.now + (Math.random() * 2000) + 2000;
               this.setDisplaySize(99 / scale, 90 / scale);
               if(isHost && this.isAlive) {
                   this.body.setVelocityX(this.speed * this.direction);            
@@ -312,10 +347,10 @@ export class Game extends Component {
               gameManager.players[playerId].score += this.score;
               console.log(gameManager.scoreTexts);
               if(playerId === self.socket.id){
-                  self.localScore.setText("" + self.socket.id + ": " + gameManager.players[self.socket.id].score);
+                  self.localScore.setText(gameManager.players[playerId].name + ": " + gameManager.players[playerId].score);
               }
               else {
-                  gameManager.scoreTexts[playerId].setText(playerId + ": " + gameManager.players[playerId].score);
+                  gameManager.scoreTexts[playerId].setText(gameManager.players[playerId].name + ": " + gameManager.players[playerId].score);
               }
           },
 
@@ -344,8 +379,11 @@ export class Game extends Component {
           },
 
           shoot: function() {
-              console.log(this.id + " is shootsting");
-              this.firingTimer = self.time.now + (Math.random() * 2000) + 1000;
+              var bullet = enemyBullets.get();
+              if(bullet) {
+                  bullet.fire(this.x, this.y);
+              }
+              this.firingTimer = self.time.now + ((Math.random() + 0.1) * 3000) + 3000;
           }
 
       });
@@ -358,6 +396,12 @@ export class Game extends Component {
 
       otherBullets = this.physics.add.group({
           classType: Bullet,
+          maxSize: 60,
+          runChildUpdate: true
+      });
+
+      enemyBullets = this.physics.add.group({
+          classType: EnemyBullet,
           maxSize: 60,
           runChildUpdate: true
       });
@@ -464,6 +508,10 @@ export class Game extends Component {
               newRound(gameManager.round); 
           }
       }
+
+      this.stars1.tilePositionY -= 2;
+      this.stars2.tilePositionY -= 4;
+      
 
     // === End of the update() function ===
     }
@@ -598,21 +646,30 @@ export class Game extends Component {
     //     }
     // }
 
+    function addBackground(game) {
+        console.log("in background adding");
+        game.background = game.add.tileSprite(400, 300, 800, 600, 'background').setDepth(-3);
+        game.stars1 = game.add.tileSprite(400, 300, 800, 600, 'stars1').setDepth(-2);
+        game.stars2 = game.add.tileSprite(400, 300, 800, 600, 'stars2').setDepth(-1);
+    }
+
     function addPlayer(self, playerInfo) {
       if(playerInfo.isHost) {
           isHost = true;
       }
       self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setDisplaySize(135 / scale, 90 / scale);
       self.ship.setDepth(1);
-      gameManager.players[self.socket.id] = { score: 0 };
+      var playerNum = (Object.keys(gameManager.players).length + 1);
+      gameManager.players[self.socket.id] = { score: 0, name: "Player " + playerNum};
     }
 
     function addOtherPlayers(self, playerInfo) {
       const otherPlayer = self.physics.add.image(playerInfo.x, playerInfo.y, 'otherShip').setOrigin(0.5, 0.5).setDisplaySize(135 / scale, 90 / scale);
       otherPlayer.playerId = playerInfo.playerId;
       self.otherPlayers.add(otherPlayer);
-      gameManager.players[otherPlayer.playerId] = { score: 0 };
-      gameManager.scoreTexts[otherPlayer.playerId] = self.add.text(16, 72 + (24 * Object.keys(gameManager.scoreTexts).length), otherPlayer.playerId + ": 0", { fontSize: '32px', fill: '#FF0000', fontFamily: 'Share Tech' });
+      var playerNum = (Object.keys(gameManager.players).length + 1);
+      gameManager.players[otherPlayer.playerId] = { score: 0, name: "Player " + playerNum };
+      gameManager.scoreTexts[otherPlayer.playerId] = self.add.text(16, 72 + (24 * Object.keys(gameManager.scoreTexts).length), gameManager.players[otherPlayer.playerId].name + ": 0", { fontSize: '32px', fill: '#FF0000', fontFamily: 'Share Tech' });
       if(isHost) {
           self.socket.emit('changeGameManager', gameManager);
       }
