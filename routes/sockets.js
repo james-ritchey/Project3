@@ -41,7 +41,7 @@ socket.on('disconnect', function () {
       players[playerKeys[newHostIndex]].isHost = true;
       //scores.host = playerKeys[newHostIndex];
       //Emit the new host data to the remaining players
-      io.emit('scoreUpdate', scores);
+      io.emit('scoreUpdate');
       socket.broadcast.emit('hostAssigned', players[playerKeys[newHostIndex]]);
       console.log("\nNew Host is being Selected\n");
     }
@@ -84,7 +84,7 @@ socket.on('enemyHit', function(data){
 
 //When the client loads the required fonts, send the client the required score data
 socket.on('fontsLoaded', function() {
-  io.to(`${socket.id}`).emit('scoreUpdate', scores);
+  io.to(`${socket.id}`).emit('scoreUpdate');
 });
 
 socket.on('enemyState', function(enemyData) {

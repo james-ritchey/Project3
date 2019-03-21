@@ -473,9 +473,10 @@ export class Game extends Component {
       };
 
       function playerHit(enemyBullet, player) {
-        console.log(player);
+        console.log(player.playerId);
         enemyBullet.destroy();
         gameManager.players[player.playerId].lives -= 1;
+        if(gameManager.players[player.playerId])
         self.livesText.setText("Lives: " + gameManager.players[player.playerId].lives);
         if(gameManager.players[player.playerId].lives <= 0) {
             gameManager.numOfDeadPlayers += 1;
@@ -700,13 +701,19 @@ export class Game extends Component {
     function gameOver(game) {
         game.gameOver = true;
         gameManager.started = false;
-        game.gameOverText.setText('GAME OVER\n(Press \'R\' to restart)');
+        if(isHost) {
+            game.gameOverText.setText('GAME OVER\n(Press \'R\' to restart)');
+        }
+        else {
+            game.gameOverText.setText('GAME OVER\n(Waiting for host to restart)');
+        }
     }
 
     function restartGame(game) {
         console.log("RESET ME");
         gameManager.round = 1;
         gameManager.spawnedRows = 0;
+        gameManager.numOfDeadPlayers = 0;
         game.currentRound.setText("Round: " + gameManager.round);
         Object.keys(gameManager.players).forEach(function(key) {
             gameManager.players[key].score = 0;
