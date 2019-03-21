@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
 import Phaser from 'phaser';
 import openSocket from 'socket.io-client';
+/* eslint react/prop-types: 0 */
 
 export class Game extends Component {
   componentDidMount() {
     var config = {
       type: Phaser.AUTO,
-      parent: 'voyager',
+      parent: 'phaser-game',
       width: 800,
       height: 600,
       physics: {
@@ -65,9 +66,11 @@ export class Game extends Component {
       this.load.image('enemy', 'assets/enemy1.png');
       this.load.image('bullet', 'assets/bullet_player.png');
     }
+
     var bullets = null;
     var enemies = null;
     var otherBullets = null;
+    
     // Create function for the Phaser engine
     function create() {
       
@@ -79,20 +82,21 @@ export class Game extends Component {
       
       this.socket = openSocket('http://localhost:4000');
       this.otherPlayers = this.physics.add.group();
-
-      // WebFont.load({
-      //     google: {
-      //         families: [ 'Share Tech' ]
-      //     },
-      //     active: function ()
-      //     {
-      //         self.currentRound = add.text(16, 16, 'Round: 1', { fontSize: '32px', fill: '#ffffff', fontFamily: 'Share Tech'});
-      //         self.localScore = add.text(16, 48, self.socket.id + ': 0', { fontSize: '32px', fill: '#FF0000', fontFamily: 'Share Tech' });
-      //         //self.socket.emit('fontsLoaded');
-      //         setScore = true;
-      //     }
-      // });
-      
+    // eslint-disable-next-line
+      WebFont.load({
+          google: {
+              families: [ 'Share Tech' ]
+          },
+          active: function ()
+          {
+              self.currentRound = add.text(16, 16, 'Round: 1', { fontSize: '32px', fill: '#ffffff', fontFamily: 'Share Tech'});
+              self.localScore = add.text(16, 48, self.socket.id + ': 0', { fontSize: '32px', fill: '#FF0000', fontFamily: 'Share Tech' });
+              //self.socket.emit('fontsLoaded');
+              setScore = true;
+          }
+      });
+        // self.currentRound = add.text(16, 16, 'Round: 1', { fontSize: '32px', fill: '#ffffff', /*fontFamily: 'Share Tech'*/});
+        // self.localScore = add.text(16, 48, self.socket.id + ': 0', { fontSize: '32px', fill: '#FF0000', /*fontFamily: 'Share Tech' */});
 
       this.socket.on('currentPlayers', function (players) {
           console.log("Players: " + Object.keys(players).length);
@@ -142,7 +146,7 @@ export class Game extends Component {
           });
       });
 
-      this.socket.on('scoreUpdate', function (scores) {
+      this.socket.on('scoreUpdate', function () {
           if(setScore) {
               self.currentRound.setText('Round: ' + gameManager.round);
               self.localScore.setText("" + self.socket.id + ": " + gameManager.players[self.socket.id].score);
