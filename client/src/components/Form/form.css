@@ -1,0 +1,58 @@
+.submit-btn {
+  font-family: 'Roboto', sans-serif;
+  font-size: 20px;
+  background-color: #F15A24;
+  border: none;
+  width: 170px;
+}
+
+.submit-btn:hover {
+  background-color: #F7AC72;
+}
+
+input {
+  width: 25%;
+}
+
+form {
+  padding-top: 10%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100vmax;
+}
+
+.usernameTitle {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 20px;
+  color: #F15A24;
+}
+
+.usernameBox {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border: none;
+  color: white !important;
+  font-size: 15px;
+}
+
+.passwordBox {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border: none;
+  color: white !important;
+  font-size: 15px;
+}
+
+.passwordTitle {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 20px;
+  color: #F15A24;
+}
+
+.loginSignupSwitch {
+  font-family: 'Roboto', sans-serif;
+  font-size: 20px;
+  color: #F7AC72;
+  cursor: pointer;
+  margin-top: 20px;
+}

@@ -1,0 +1,13 @@
+.phaser-div {
+    background: linear-gradient(#111C26, rgb(10, 17, 24)) fixed;
+    height: 100vmin;
+}
+
+#phaser-game {
+    display: flex;
+    justify-content: center;
+}
+
+#phaser-game canvas {
+    margin-top: 25px;
+}

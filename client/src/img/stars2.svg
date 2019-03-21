@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 23.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg width="1292px" height="674px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 1292 674" style="enable-background:new 0 0 1292 674;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#FFFFFF;}
+	.st1{fill:url(#SVGID_1_);}
+</style>
+<symbol  id="pixel_star2" viewBox="-1.5 -1.5 3 3">
+	<rect x="-1.5" y="-1.5" class="st0" width="3" height="3"/>
+</symbol>
+<symbol  id="pixel_star2" viewBox="-3.5 -3.5 7 7">
+	
+		<use xlink:href="#pixel_star"  width="3" height="3" x="-1.5" y="-1.5" transform="matrix(2.3333 0 0 2.3333 0 0)" style="overflow:visible;"/>
+</symbol>
+<g>
+	
+		<use xlink:href="#pixel_star2"  width="7" height="7" x="-3.5" y="-3.5" transform="matrix(1 0 0 -1 3.6797 214.375)" style="overflow:visible;"/>
+	
+		<use xlink:href="#pixel_star2"  width="7" height="7" x="-3.5" y="-3.5" transform="matrix(1 0 0 -1 187.4721 86.5078)" style="overflow:visible;"/>
+	
+		<use xlink:href="#pixel_star2"  width="7" height="7" x="-3.5" y="-3.5" transform="matrix(1 0 0 -1 505.5435 8.0587)" style="overflow:visible;"/>
+	
+		<use xlink:href="#pixel_star2"  width="7" height="7" x="-3.5" y="-3.5" transform="matrix(1 0 0 -1 668.2104 122.541)" style="overflow:visible;"/>
+	
+		<use xlink:href="#pixel_star2"  width="7" height="7" x="-3.5" y="-3.5" transform="matrix(1 0 0 -1 358.3784 343.3638)" style="overflow:visible;"/>
+	
+		<use xlink:href="#pixel_star2"  width="7" height="7" x="-3.5" y="-3.5" transform="matrix(1 0 0 -1 332.911 448.0061)" style="overflow:visible;"/>
+	
+		<use xlink:href="#pixel_star2"  width="7" height="7" x="-3.5" y="-3.5" transform="matrix(1 0 0 -1 655.1576 392.0088)" style="overflow:visible;"/>
+	
+		<use xlink:href="#pixel_star2"  width="7" height="7" x="-3.5" y="-3.5" transform="matrix(1 0 0 -1 1204.1031 449.0732)" style="overflow:visible;"/>
+	
+		<use xlink:href="#pixel_star2"  width="7" height="7" x="-3.5" y="-3.5" transform="matrix(1 0 0 -1 1288.3203 254.6335)" style="overflow:visible;"/>
+	
+		<use xlink:href="#pixel_star2"  width="7" height="7" x="-3.5" y="-3.5" transform="matrix(1 0 0 -1 1152.3843 30.936)" style="overflow:visible;"/>
+	
+		<use xlink:href="#pixel_star2"  width="7" height="7" x="-3.5" y="-3.5" transform="matrix(1 0 0 -1 851.1594 3.0105)" style="overflow:visible;"/>
+	
+		<use xlink:href="#pixel_star2"  width="7" height="7" x="-3.5" y="-3.5" transform="matrix(1 0 0 -1 894.3885 287.7851)" style="overflow:visible;"/>
+	
+		<use xlink:href="#pixel_star2"  width="7" height="7" x="-3.5" y="-3.5" transform="matrix(1 0 0 -1 1034.0442 590.3947)" style="overflow:visible;"/>
+	
+		<use xlink:href="#pixel_star2"  width="7" height="7" x="-3.5" y="-3.5" transform="matrix(1 0 0 -1 829.1779 562.0268)" style="overflow:visible;"/>
+	
+		<use xlink:href="#pixel_star2"  width="7" height="7" x="-3.5" y="-3.5" transform="matrix(1 0 0 -1 477.8337 608.2869)" style="overflow:visible;"/>
+	
+		<use xlink:href="#pixel_star2"  width="7" height="7" x="-3.5" y="-3.5" transform="matrix(1 0 0 -1 169.3651 508.0556)" style="overflow:visible;"/>
+	
+		<use xlink:href="#pixel_star2"  width="7" height="7" x="-3.5" y="-3.5" transform="matrix(1 0 0 -1 104.8701 670.9895)" style="overflow:visible;"/>
+</g>
+</svg>

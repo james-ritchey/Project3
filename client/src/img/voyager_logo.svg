@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="300px" height="36.588" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 300 36.59" >
+<style type="text/css">
+	.st0{fill:#F7AC72;}
+</style>
+<g>
+	<path class="st0" d="M7.32,21.95H0V0h7.32V21.95h7.32v7.32h7.32v7.32h-7.32v-7.32H7.32V21.95z M21.95,21.95h7.32v7.32h-7.32V21.95z
+		 M29.27,0h7.32v21.95h-7.32V0z"/>
+	<path class="st0" d="M43.9,0h36.58v36.58H43.9V0z M51.22,29.27h21.95V7.32H51.22V29.27z"/>
+	<path class="st0" d="M87.8,0h7.32v14.63h21.95V0h7.32v21.95h-14.63v14.63h-7.32V21.95H87.8L87.8,0L87.8,0z"/>
+	<path class="st0" d="M160.98,21.95h-21.95v14.63h-7.32V0h36.58v36.58h-7.32V21.95z M139.02,14.63h21.95V7.32h-21.95L139.02,14.63
+		L139.02,14.63z"/>
+	<path class="st0" d="M175.61,0h36.59v7.32h-29.27v21.95h21.95v-7.31h-14.63v-7.32h21.95v21.95h-36.59V0z"/>
+	<path class="st0" d="M219.51,0h36.59v7.32h-29.27v7.32h14.63v7.32h-14.63v7.32h29.27v7.32h-36.58V0z"/>
+	<path class="st0" d="M263.42,0h29.27v7.32H300v14.64h-7.32v7.32H300v7.32h-7.32v-7.32h-7.32v-7.32h-14.63v14.63h-7.32L263.42,0
+		L263.42,0z M270.73,7.32v7.32h21.95V7.32H270.73z"/>
+</g>
+</svg>
