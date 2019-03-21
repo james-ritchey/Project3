@@ -4,7 +4,7 @@ const passport = require('passport');
 const routes = require('./routes');
 const session = require('express-session');
 
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 
 
 const app = express();
