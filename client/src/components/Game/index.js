@@ -32,29 +32,30 @@ export class Game extends Component {
 
     var gameManager = {
         started: false,
-      round: 1,
-      spawnedRows: 0,
-      //Scores are held here under the player socket ID
-      players: {},
-      numOfDeadPlayers: 0,
-      scoreTexts: {},
-      enemiesOnScreen: 0,
-      enemies: {
-          row1: [],
-          row2: [],
-          row3: [],
-          row4: [],
-          row5: [],
-          row6: [],
-          dead: {
-              row1: [],
-              row2: [],
-              row3: [],
-              row4: [],
-              row5: [],
-              row6: [],
-          }
-      }
+        round: 1,
+        spawnedRows: 0,
+        //Scores are held here under the player socket ID
+        players: {},
+        numOfDeadPlayers: 0,
+        lives: 3,
+        scoreTexts: {},
+        enemiesOnScreen: 0,
+        enemies: {
+            row1: [],
+            row2: [],
+            row3: [],
+            row4: [],
+            row5: [],
+            row6: [],
+            dead: {
+                row1: [],
+                row2: [],
+                row3: [],
+                row4: [],
+                row5: [],
+                row6: [],
+            }
+        }
     }
 
 
@@ -473,11 +474,14 @@ export class Game extends Component {
       };
 
       function playerHit(enemyBullet, player) {
-        console.log(player.playerId);
+        console.log(gameManager.players[player.playerId]);
+        console.log(Object.keys(gameManager.players).length)
         enemyBullet.destroy();
         gameManager.players[player.playerId].lives -= 1;
-        if(gameManager.players[player.playerId])
-        self.livesText.setText("Lives: " + gameManager.players[player.playerId].lives);
+        if(gameManager.players[player.playerId].lives < 0) {
+            gameManager.players[player.playerId].lives = 0;
+        }
+        self.livesText.setText("Lives: " + gameManager.players[self.socket.id].lives);
         if(gameManager.players[player.playerId].lives <= 0) {
             gameManager.numOfDeadPlayers += 1;
             if(gameManager.numOfDeadPlayers === Object.keys(gameManager.players).length){
