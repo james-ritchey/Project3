@@ -20,7 +20,12 @@ app.use(session({
   saveUninitialized: false //required
 }));
 
-app.use(express.static('public'));
+if(process.env.NODE_ENV === "production") {
+  app.use(express.static("client/build"));
+}
+else {
+  app.use(express.static('public'));
+}
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
