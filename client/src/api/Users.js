@@ -2,7 +2,7 @@ import axios from 'axios';
 
 import config from '../config/config';
 
-const userURL = `${config.backendURL}/api/users`;
+const userURL = `/api/users`;
 const Users = {
   login: (username, password, cb) => {
     axios.post(`${userURL}/login`, {

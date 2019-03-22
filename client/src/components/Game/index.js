@@ -87,7 +87,7 @@ export class Game extends Component {
         this.gameOver = false;
       addBackground(self);
       
-      this.socket = openSocket('http://localhost:4000');
+      this.socket = openSocket('http://localhost:' + process.env.PORT);
       this.otherPlayers = this.physics.add.group();
       this.playerGroup = this.physics.add.group();
     // eslint-disable-next-line
