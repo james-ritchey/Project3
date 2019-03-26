@@ -25,10 +25,18 @@ class RoomTable extends Component {
       this.setState({ gameCreator: true })
     }
 
+    joinGame = (gameId) => {
+      const data = {
+        gameId: gameId
+      };
+      
+      this.state.socket.emit('joinGame', data)
+    }
+
     createGameList = () => {
       let htmlArray = [];
       for(let i = 0; i < this.state.gameIdList.length; i++) {
-        htmlArray.push(<li><Link to={{ pathname: '/game', state: { gameId: this.state.gameIdList[i] } }}>Room {this.state.gameIdList[i]}</Link></li>)
+        htmlArray.push(<li><Link onClick={() => this.joinGame(this.state.gameIdList[i])} to={{ pathname: '/game', state: { gameId: this.state.gameIdList[i] } }}>Room {this.state.gameIdList[i]}</Link></li>)
       }
 
       return htmlArray;
