@@ -43,7 +43,7 @@ class App extends Component {
           <Route exact path="/lobby"
             render={() => this.state.user.isAuth ? (<Lobby user={this.state.user} />) : (<Redirect to="/" />)}
           />
-          <Route exact path="/game/:id"
+          <Route exact path="/game"
             render={() => this.state.user.isAuth ? (<Game user={this.state.user} />) : (<Redirect to="/" />)}
           />
           <Route path='/'
