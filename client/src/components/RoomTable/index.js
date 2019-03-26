@@ -11,9 +11,20 @@ class RoomTable extends Component {
       this.state = {
         socket: openSocket('http://localhost:4000'),
         gameIdList: [],
-        gameCreator: false
+        gameCreator: false,
+        playerId: null
       }
       
+      // client side socket event to send playerId to backend
+      this.state.socket.on('connect', function(){
+        //                                    //
+        // Insert playerId data handling here //
+        //                                    //
+        this.state.socket.emit('playerId', {
+            playerId: this.state.playerId
+        })
+      })
+
       this.state.socket.on('gameCreated', ({gameId}) => {
         let gameList = this.state.gameIdList;
         gameList.push(gameId);
