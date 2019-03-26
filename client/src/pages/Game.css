@@ -1,5 +1,5 @@
 .phaser-div {
-    background: linear-gradient(#111C26, rgb(10, 17, 24)) fixed;
+    background: linear-gradient(to left bottom, #111C26, #522727) fixed;
     height: 100vmin;
 }
 
