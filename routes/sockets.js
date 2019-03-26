@@ -95,7 +95,18 @@ socket.on('enemyState', function(enemyData) {
 socket.on('changeGameManager', function(data) {
   console.log("Sending GameManager");
   socket.broadcast.emit('updateGameManager', data);
-})
+});
+socket.on('restartGame', function() {
+  socket.broadcast.emit('restartGame');
+});
+socket.on('playerKilled', function(player) {
+  socket.broadcast.emit('killPlayer', player);
+});
+socket.on('gameOver', function() {
+  socket.broadcast.emit('endGame');
+});
+
+//End of the sockets
 }
 
 module.exports = sockets;

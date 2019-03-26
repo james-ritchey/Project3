@@ -84,7 +84,7 @@ export class Game extends Component {
       var self = this;
       var add = this.add;
       var setScore = false;
-        this.gameOver = false;
+      this.gameOver = false;
       addBackground(self);
       
       this.socket = openSocket('http://localhost:4000');
@@ -101,7 +101,7 @@ export class Game extends Component {
               self.localScore = add.text(16, 48, gameManager.players[self.socket.id].name + ": 0", { fontSize: '32px', fill: '#FF0000', fontFamily: 'Share Tech' });
               self.livesText = add.text(config.width - 112, 16, 'Lives: 3', {fontSize: "32px", fill: "#ffffff", fontFamily: 'Share Tech', align: 'right'});
               self.gameOverText = add.text(config.width / 5, config.height / 3, '', {fontSize: "64px", fill: "#ffffff", fontFamily: 'Share Tech', align: 'center'});
-              //self.socket.emit('fontsLoaded');
+              self.socket.emit('fontsLoaded');
               setScore = true;
           }
       });
@@ -142,7 +142,12 @@ export class Game extends Component {
                   otherPlayer.destroy();
               }
           });
-
+          Object.keys(gameManager.scoreTexts).forEach(function(key) {
+            if(playerId === key) {
+                gameManager.scoreTexts[key].destroy();
+                delete gameManager.scoreTexts[key];
+            }
+          });
       });
 
       this.cursors = this.input.keyboard.createCursorKeys();
@@ -163,7 +168,8 @@ export class Game extends Component {
               self.localScore.setText(gameManager.players[self.socket.id].name + ": " + gameManager.players[self.socket.id].score);
                 Object.keys(gameManager.scoreTexts).forEach(function(key) {
                     gameManager.scoreTexts[key].setText(gameManager.players[key].name + ": " + gameManager.players[key].score)
-                })
+                    gameManager.scoreTexts[key].setFontFamily('Share Tech');
+                });
             }
       });
 
@@ -214,7 +220,7 @@ export class Game extends Component {
       });
 
       this.socket.on('updateGameManager', function(gameData) {
-          console.log(gameData);
+          //console.log(gameData);
           gameManager.round = gameData.round;
           gameManager.enemiesOnScreen = gameData.enemiesOnScreen;
           gameManager.players = gameData.players;
@@ -227,9 +233,23 @@ export class Game extends Component {
                   else {
                       gameManager.scoreTexts[playerId].setText(gameManager.players[playerId].name + ": " + gameManager.players[playerId].score);
                   }
-              })
+              });
+              self.livesText.setText("Lives: " + gameManager.players[self.socket.id].lives);
           }
+      });
+
+      this.socket.on('killPlayer', function(player) {
+          gameManager.players[player.id].lives = 0;
+          gameManager.numOfDeadPlayers += 1;
+      });
+
+      this.socket.on('endGame', function() {
+          gameOver(self);
       })
+
+      this.socket.on('restartGame', function() {
+        restartGame(self);
+      });
 
       //Class creation for the Bullet class
       var Bullet = new Phaser.Class({
@@ -366,7 +386,7 @@ export class Game extends Component {
                   gameManager.enemiesOnScreen = gameManager.enemiesOnScreen - 1;
               }
               gameManager.players[playerId].score += this.score;
-              console.log(gameManager.scoreTexts);
+              //console.log(gameManager.scoreTexts);
               if(playerId === self.socket.id){
                   self.localScore.setText(gameManager.players[playerId].name + ": " + gameManager.players[playerId].score);
               }
@@ -462,33 +482,40 @@ export class Game extends Component {
       this.physics.add.overlap(enemyBullets, bullets, function(enemyBullet, bullet) {
           bullet.destroy();
           enemyBullet.destroy();
-      })
+      });
+      this.physics.add.overlap(enemyBullets, otherBullets, function(enemyBullet, bullet) {
+        bullet.destroy();
+        enemyBullet.destroy();
+    });
       
       //The function called when the local player hits an enemy
       function enemyHit(bullet, enemy) {
-          console.log(bullet.playerId);
+          //console.log(bullet.playerId);
           bullet.destroy();
           self.socket.emit('enemyHit', { enemyId: enemy.id, playerId: bullet.playerId });
           //self.socket.emit('enemyState', {id: this.id, kill: true});
           enemy.hit(bullet.playerId);
       };
 
-      function playerHit(enemyBullet, player) {
-        console.log(gameManager.players[player.playerId]);
-        console.log(Object.keys(gameManager.players).length)
-        enemyBullet.destroy();
-        gameManager.players[player.playerId].lives -= 1;
-        if(gameManager.players[player.playerId].lives < 0) {
-            gameManager.players[player.playerId].lives = 0;
-        }
-        self.livesText.setText("Lives: " + gameManager.players[self.socket.id].lives);
-        if(gameManager.players[player.playerId].lives <= 0) {
-            gameManager.numOfDeadPlayers += 1;
-            if(gameManager.numOfDeadPlayers === Object.keys(gameManager.players).length){
-                gameOver(self);
+        function playerHit(enemyBullet, player) {
+            enemyBullet.destroy();
+            var gmPlayer = gameManager.players[player.playerId];
+            if(gmPlayer.lives > 0 && gmPlayer.isAlive) {
+                player.setPosition(config.width / 2, config.height + 100);
+                gmPlayer.isAlive = false;
+                gmPlayer.lives -= 1;
+                if(player.playerId === self.socket.id) {
+                    self.livesText.setText("Lives: " + gmPlayer.lives);
+                    if(gmPlayer.lives <= 0) {
+                        killPlayer(player);
+                        self.socket.emit('playerKilled', { id: player.playerId });
+                    }
+                    else {
+                        respawnPlayer(player);
+                    }
+                }
             }
         }
-      }
 
       createEnemies(enemies);
     // === End of the create() function ===
@@ -500,47 +527,56 @@ export class Game extends Component {
       var self = this;
       //Player controls including movement and firing
       if (this.ship) {
-          if (this.cursors.left.isDown && this.ship.x > 50) {
-              this.ship.x = this.ship.x - playerSpeed;
-          } 
-          else if (this.cursors.right.isDown && this.ship.x < config.width - 50) {
-              this.ship.x = this.ship.x + playerSpeed;
-          } 
-          //The player fires when they press the fire button, currently the 'space bar'
-          if (Phaser.Input.Keyboard.JustDown(fireButton))
-          {
-              console.log(gameManager);
-              if(isHost) {
-                  
-                  var bullet = bullets.get();
-                  if (bullet)
-                  {
-                      bullet.fire(this.ship.x, this.ship.y);
-                      bullet.playerId = this.socket.id;
-                      var bulletLoc = {
-                          x: this.ship.x,
-                          y: this.ship.y,
-                          playerId: bullet.playerId
-                      }
-                      this.socket.emit('playerFire', bulletLoc);
-                  }
-              }
-              else {
-                  var bullet = otherBullets.get();
-                  if (bullet)
-                  {
-                      bullet.fire(this.ship.x, this.ship.y);
-                      bullet.playerId = this.socket.id;
-                      var bulletLoc = {
-                          x: this.ship.x,
-                          y: this.ship.y,
-                          playerId: bullet.playerId
-                      }
-                      this.socket.emit('playerFire', bulletLoc);
-                  }
-              }
+          if(gameManager.players[self.socket.id].isAlive){
+             if (this.cursors.left.isDown && this.ship.x > 50) {
+                this.ship.x = this.ship.x - playerSpeed;
+            } 
+            else if (this.cursors.right.isDown && this.ship.x < config.width - 50) {
+                this.ship.x = this.ship.x + playerSpeed;
+            } 
+            //The player fires when they press the fire button, currently the 'space bar'
+            if (Phaser.Input.Keyboard.JustDown(fireButton))
+            {
+                //console.log(gameManager);
+                if(isHost) {
+                    
+                    var bullet = bullets.get();
+                    if (bullet)
+                    {
+                        bullet.fire(this.ship.x, this.ship.y);
+                        bullet.playerId = this.socket.id;
+                        var bulletLoc = {
+                            x: this.ship.x,
+                            y: this.ship.y,
+                            playerId: bullet.playerId
+                        }
+                        this.socket.emit('playerFire', bulletLoc);
+                    }
+                }
+                else {
+                    var bullet = otherBullets.get();
+                    if (bullet)
+                    {
+                        bullet.fire(this.ship.x, this.ship.y);
+                        bullet.playerId = this.socket.id;
+                        var bulletLoc = {
+                            x: this.ship.x,
+                            y: this.ship.y,
+                            playerId: bullet.playerId
+                        }
+                        this.socket.emit('playerFire', bulletLoc);
+                    }
+                }
 
+            } 
           }
+          else {
+              if(this.ship.y <= this.ship.targetY) {
+                  this.ship.body.setVelocityY(0);
+                  gameManager.players[self.socket.id].isAlive = true;
+              }
+          }
+            
           
           // emit player movement
           var x = this.ship.x;
@@ -558,19 +594,23 @@ export class Game extends Component {
       }
       //Basic game logic for spawning an increasing number of enemies, only on the host side
       if(isHost) {
-          if(gameManager.started && gameManager.enemiesOnScreen <= 0 && gameManager.spawnedRows === gameManager.round) {
-              gameManager.round++;
-              newRound(gameManager.round);
-              self.currentRound.setText("Round: " + gameManager.round);
-              this.socket.emit('changeGameManager', gameManager);
-          }
-          if(!gameManager.started && !self.gameOver) {
-              console.log("Starting game");
-              gameManager.started = true;
-              newRound(gameManager.round); 
-          }
-          if(this.gameOver && Phaser.Input.Keyboard.JustDown(resetButton)) {
+        if(gameManager.started && gameManager.enemiesOnScreen <= 0 && gameManager.spawnedRows === gameManager.round) {
+            gameManager.round++;
+            newRound(gameManager.round);
+            self.currentRound.setText("Round: " + gameManager.round);
+            this.socket.emit('changeGameManager', gameManager);
+        }
+        if(!gameManager.started && !self.gameOver) {
+            console.log("Starting game");
+            gameManager.started = true;
+            newRound(gameManager.round); 
+        }
+        if(this.gameOver && Phaser.Input.Keyboard.JustDown(resetButton)) {
             restartGame(self);
+        }
+        if(gameManager.numOfDeadPlayers >= Object.keys(gameManager.players).length) {
+            gameOver(self);
+            self.socket.emit('gameOver');
         }
       }
 
@@ -713,7 +753,21 @@ export class Game extends Component {
         }
     }
 
+    function killPlayer(player) {
+        gameManager.players[player.playerId].lives = 0;
+        gameManager.numOfDeadPlayers += 1;
+    }
+
+    function respawnPlayer(player) {
+        console.log("Respawning this one: ");
+        player.targetY = config.height - 64;
+        player.setVelocityY(-150);
+    }
+
     function restartGame(game) {
+        if(isHost) {
+            game.socket.emit('restartGame');
+        }
         console.log("RESET ME");
         gameManager.round = 1;
         gameManager.spawnedRows = 0;
@@ -733,6 +787,9 @@ export class Game extends Component {
         });
         game.gameOverText.setText("");
         game.gameOver = false;
+        gameManager.players[game.socket.id].isAlive = true;
+        game.ship.setPosition(config.width / 2, config.height - 64);
+        enemyBullets.clear(true, true);
     }
 
     function addBackground(game) {
@@ -749,7 +806,7 @@ export class Game extends Component {
       self.ship.setDepth(1);
       self.ship.playerId = self.socket.id;
       var playerNum = (Object.keys(gameManager.players).length + 1);
-      gameManager.players[self.socket.id] = { score: 0, name: "Player " + playerNum, lives: 3};
+      gameManager.players[self.socket.id] = { score: 0, name: "Player " + playerNum, lives: 3, isAlive: true};
       self.playerGroup.add(self.ship);
     }
 
@@ -759,7 +816,7 @@ export class Game extends Component {
       self.otherPlayers.add(otherPlayer);
       self.playerGroup.add(otherPlayer);
       var playerNum = (Object.keys(gameManager.players).length + 1);
-      gameManager.players[otherPlayer.playerId] = { score: 0, name: "Player " + playerNum, lives: 3 };
+      gameManager.players[otherPlayer.playerId] = { score: 0, name: "Player " + playerNum, lives: 3, isAlive: true };
       gameManager.scoreTexts[otherPlayer.playerId] = self.add.text(16, 72 + (24 * Object.keys(gameManager.scoreTexts).length), gameManager.players[otherPlayer.playerId].name + ": 0", { fontSize: '32px', fill: '#FF0000', fontFamily: 'Share Tech' });
       if(isHost) {
           self.socket.emit('changeGameManager', gameManager);
