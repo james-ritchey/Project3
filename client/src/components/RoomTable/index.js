@@ -15,33 +15,15 @@ class RoomTable extends Component {
         players: {}
       }
       
-      // client side socket event to send playerId to backend
-      this.state.socket.on('connect', function(){
-        //                                    //
-        // Insert playerId data handling here //
-        //                                    //
-        this.state.socket.emit('playerId', {
-            playerId: this.state.playerId
-        })
-      })
-
       this.state.socket.on('gameCreated', ({gameId}) => {
         let gameList = this.state.gameIdList;
         gameList.push(gameId);
         this.setState({ gameIdList: gameList });
       });
 
-      this.state.socket.on('thisGameCreated', (data) => {
-        Object.assign(this.state.players, data.player);
-        console.log("--------------------");
-        console.log("Game is created.  Updated players object is: ");
-        console.log(this.state.players);
-        console.log("--------------------");
-      });
-
       this.state.socket.on('currentGameJoin', (data) => {
         let mergedPlayers = Object.assign({}, this.state.players, data.player);
-        this.state.players = mergedPlayers;
+        this.setState({ players: mergedPlayers });
         console.log("--------------------");
         console.log("Game is joined.  Updated players object is: ");
         console.log(this.state.players);

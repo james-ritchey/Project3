@@ -12,10 +12,19 @@ export class Game extends Component {
       gameCreator: false,
       players: {}
     }
+    this.state.socket.on('thisGameCreated', (data) => {
+      this.setState({players: data.player})
+      console.log("--------------------");
+      console.log("Game is created.  Updated players object is: ");
+      console.log(this.state.players);
+      console.log("--------------------");
+    });
   }
+  
 
   componentDidMount() {
     let socket = this.props.socket;
+    console.log("players", this.props.players)
     var config = {
       type: Phaser.AUTO,
       parent: 'phaser-game',
@@ -46,7 +55,7 @@ export class Game extends Component {
         round: 1,
         spawnedRows: 0,
         //Scores are held here under the player socket ID
-        players: this.state.players,
+        players: {},
         numOfDeadPlayers: 0,
         lives: 3,
         scoreTexts: {},
