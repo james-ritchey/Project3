@@ -9,7 +9,8 @@ export class Game extends Component {
     this.state = {
       socket: this.props.socket,
       gameIdList: [],
-      gameCreator: false
+      gameCreator: false,
+      players: {}
     }
   }
 

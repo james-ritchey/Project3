@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { Link, Redirect } from "react-router-dom";
+import { createDecipher } from "crypto";
 
 
 class RoomTable extends Component {
@@ -10,7 +11,8 @@ class RoomTable extends Component {
         socket: this.props.socket,
         gameIdList: [],
         gameCreator: false,
-        playerId: null
+        playerId: null,
+        players: {}
       }
       
       // client side socket event to send playerId to backend
@@ -29,6 +31,22 @@ class RoomTable extends Component {
         this.setState({ gameIdList: gameList });
       });
 
+      this.state.socket.on('thisGameCreated', (data) => {
+        Object.assign(this.state.players, data.player);
+        console.log("--------------------");
+        console.log("Game is created.  Updated players object is: ");
+        console.log(this.state.players);
+        console.log("--------------------");
+      });
+
+      this.state.socket.on('currentGameJoin', (data) => {
+        let mergedPlayers = Object.assign({}, this.state.players, data.player);
+        this.state.players = mergedPlayers;
+        console.log("--------------------");
+        console.log("Game is joined.  Updated players object is: ");
+        console.log(this.state.players);
+        console.log("--------------------");
+      });
     }
 
     createGame = () => {
