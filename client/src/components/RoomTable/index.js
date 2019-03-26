@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Link } from "react-router-dom";
+import { Link, Redirect } from "react-router-dom";
 import openSocket from 'socket.io-client';
 
 
@@ -10,7 +10,8 @@ class RoomTable extends Component {
 
       this.state = {
         socket: openSocket('http://localhost:4000'),
-        gameIdList: []
+        gameIdList: [],
+        gameCreator: false
       }
       
       this.state.socket.on('gameCreated', ({gameId}) => {
@@ -23,6 +24,7 @@ class RoomTable extends Component {
 
     createGame = () => {
       this.state.socket.emit('createGame')
+      this.setState({ gameCreator: true })
     }
 
     createGameList = () => {
@@ -41,7 +43,10 @@ class RoomTable extends Component {
                 <ul>
                   {this.createGameList()}
                 </ul>
-                <button onClick={this.createGame}>Create Game</button>
+                {console.log(this.state.socket)}
+                <Link onClick={this.createGame} to={{pathname: '/game', state: { gameId: "test" }}}>
+                  Test
+                </Link>
             </div>
         )
     }

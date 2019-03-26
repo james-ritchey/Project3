@@ -43,8 +43,9 @@ class App extends Component {
           <Route exact path="/lobby"
             render={() => this.state.user.isAuth ? (<Lobby user={this.state.user} />) : (<Redirect to="/" />)}
           />
-          <Route exact path="/game"
-            render={() => this.state.user.isAuth ? (<Game user={this.state.user} />) : (<Redirect to="/" />)}
+          <Route path="/game"
+            
+            render={({location}) => this.state.user.isAuth ? (<Game user={location.state} />) : (<Redirect to="/" />)}
           />
           <Route path='/'
             render={() => <Landing user={this.state.user} onLogin={this.onLogin} onSignup={this.onSignup}  />}
