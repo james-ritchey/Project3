@@ -69,14 +69,16 @@ var sockets = function(socket, io) {
         player: players[socket.id],
         gameId: data.gameId
       });
+
+        // send the players object to the new player
+        io.in(players[socket.id].roomId).emit('currentPlayers', players);
+        // send the current scores
+        io.in(players[socket.id].roomId).emit('scoreUpdate');
+        // update all other players of the new player
+        io.to(players[socket.id].roomId).emit('newPlayer', players[socket.id]);
     });
 
-  // send the players object to the new player
-  io.in(players[socket.id].roomId).emit('currentPlayers', players);
-  // send the current scores
-  io.in(players[socket.id].roomId).emit('scoreUpdate');
-  // update all other players of the new player
-  io.to(players[socket.id].roomId).emit('newPlayer', players[socket.id]);
+
 
   socket.on('disconnect', function () {
     console.log('user disconnected\n');

@@ -11,8 +11,9 @@ class Game extends Component {
   render() {
     return (
       <div>
+        {console.log("Game", this.props)}
         <SocketContext.Consumer>
-          {socket => <GameComponent user={this.props.user} socket={socket} />}
+          {socket => <GameComponent host={this.props.data.host} user={this.props.user} socket={socket} />}
         </SocketContext.Consumer>
       </div>
     )

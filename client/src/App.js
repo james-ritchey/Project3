@@ -54,7 +54,7 @@ class App extends Component {
             />
             <Route path="/game"
               
-              render={({location}) => this.state.user.isAuth ? (<Game user={location.state} />) : (<Redirect to="/" />)}
+              render={({location}) => this.state.user.isAuth ? (<Game data={location.state} />) : (<Redirect to="/" />)}
             />
             <Route path='/'
               render={() => <Landing user={this.state.user} onLogin={this.onLogin} onSignup={this.onSignup}  />}

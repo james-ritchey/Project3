@@ -36,7 +36,7 @@ export class Game extends Component {
     var game = new Phaser.Game(config);
     var fireButton;
     var resetButton;
-    var isHost = false;
+    var isHost = this.props.host;
     var enemyData = {};
     var scale = 2.5;
 
