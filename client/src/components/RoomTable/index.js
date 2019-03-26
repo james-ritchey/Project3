@@ -20,6 +20,7 @@ class RoomTable extends Component {
                 <li><Link to={{ pathname: '/game/9', state: { users: this.props.user } }}>Room 9</Link></li>
                 <li><Link to={{ pathname: '/game/10', state: { users: this.props.user } }}>Room 10</Link></li>
                 </ul>
+                <button><Link to={{ pathname: '/game/1'}}>Create Game</Link></button>
             </div>
         )
     }

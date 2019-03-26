@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Phaser from 'phaser';
 import openSocket from 'socket.io-client';
+import Nav from '../Nav/index';
 
 export class Game extends Component {
   componentDidMount() {
@@ -155,6 +156,7 @@ export class Game extends Component {
     return (
       <div className="phaser-div">
         <div id="phaser-game"></div>
+        <Nav />
       </div>
       
     );
