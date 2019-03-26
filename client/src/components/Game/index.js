@@ -87,7 +87,7 @@ export class Game extends Component {
         this.gameOver = false;
       addBackground(self);
       
-      this.socket = openSocket('https://voyager-game.herokuapp.com/:' + process.env.PORT);
+      this.socket = openSocket('http://localhost:4000');
       this.otherPlayers = this.physics.add.group();
       this.playerGroup = this.physics.add.group();
     // eslint-disable-next-line

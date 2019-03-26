@@ -46,6 +46,7 @@ var server = require('http').Server(app);
 
 var io = require('socket.io').listen(server);
 io.on("connection", (socket) => {
+  socket.join('lobby');
   require('./routes/sockets')(socket, io);
 })
 
