@@ -46,7 +46,7 @@ export class Game extends Component {
         round: 1,
         spawnedRows: 0,
         //Scores are held here under the player socket ID
-        players: {},
+        players: this.state.players,
         numOfDeadPlayers: 0,
         lives: 3,
         scoreTexts: {},
