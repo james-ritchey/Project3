@@ -3,16 +3,15 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const routes = require('./routes');
 const session = require('express-session');
-
 const PORT = process.env.PORT || 4000;
-
-
 const app = express();
 
 const mongoDB = process.env.MONGODB_URI || 'mongodb://127.0.0.1/project3';
 mongoose.connect(mongoDB, { useNewUrlParser: true });
 mongoose.Promise = global.Promise;
 const db = mongoose.connection;
+
+let players = {};
 
 app.use(session({
   secret: 'ldjaisudnjdkalnasdfwpienlakjs',

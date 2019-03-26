@@ -1,18 +1,23 @@
-
-var players = {};
 //var game_config = require("../public/game_config.json");
 var games = {};
 
 var sockets = function(socket, io) {
   // sockets(socket);
   console.log('a user connected\n');
-  // create a new player and add it to our players object
-  players[socket.id] = {
-    x: 800 / 2,
-    y: 600 - 64,
-    playerId: socket.id,
-    isHost: false,
-  };
+  // fire event to check to see if a playerId already exists
+  socket.on('playerId', function(data) {
+    if (!data.playerId) {
+      // randomly generated playerId - so the same player object can be referenced across multiple socket sessions
+      var playerId = (Math.random()+1).toString(72).slice(2, 36);
+      // create a new player and add it to our players object
+      players[playerId] = {
+        x: 800 / 2,
+        y: 600 - 64,
+        playerId: playerId,
+        isHost: false,
+      };
+    }
+  });
 
 
 
@@ -25,7 +30,7 @@ var sockets = function(socket, io) {
       // join client to newly generated game
       socket.join(gameId);
       // update player roomId to gameId
-      players[socket.id].roomId = gameId;
+      players[playerId].roomId = gameId;
       // drop player from lobby
       socket.leave('lobby');
       // bring in the sockets file for phaser socket stuff.
@@ -34,20 +39,20 @@ var sockets = function(socket, io) {
         players: {}
       };
       // add player to the players list/object contained in the games object
-      games[gameId].players[socket.id] = {
-        player: players[socket.id]
+      games[gameId].players[playerId] = {
+        player: players[playerId]
       };
       console.log("Current Players object contents:");
       console.log(players);
       console.log("contents of player object who created game:");
-      console.log(players[socket.id]);
+      console.log(players[playerId]);
       // emit a 'gameCreated' event to connected frontend clients in order to display the game lobby to all connected users
       io.to('lobby').emit('gameCreated', {
         gameId: gameId
       });
       // emit a 'thisGameCreated' event to the frontend that created the game so they can be added to that game instances' player list.
       io.in(gameId).emit('thisGameCreated', {
-        player: players[socket.id],
+        player: players[playerId],
         gameId: gameId
       });
     });
@@ -57,7 +62,7 @@ var sockets = function(socket, io) {
       // join client to existing game session - room name is the gameId value, pulled from the data attribute in the link used to join the game.
       socket.join(data.gameId);
       // set the roomId key:value pair of the player object to the gameId value for later socket use/reference.
-      players[socket.id].roomId = data.gameId;
+      players[playerId].roomId = data.gameId;
       // drop player from lobby
       socket.leave('lobby');
       // bring in the separate sockets file for phaser socket stuff
@@ -83,9 +88,9 @@ var sockets = function(socket, io) {
   socket.on('disconnect', function () {
     console.log('user disconnected\n');
     //If the disconnecting player was the host, find a new one
-    if(players[socket.id].isHost ) {
+    if(players[playerId].isHost ) {
       // remove this player from our players object
-      delete players[socket.id];
+      delete players[playerId];
       //Only chooses a new host if there's a connected player
       if(Object.keys(players).length > 0) {
         //Randomly choose a new host and change the isHost value to 'true'
@@ -94,14 +99,14 @@ var sockets = function(socket, io) {
         players[playerKeys[newHostIndex]].isHost = true;
         //scores.host = playerKeys[newHostIndex];
         //Emit the new host data to the remaining players
-        io.to(players[socket.id].roomId).emit('scoreUpdate');
-        io.to(players[socket.id].roomId).emit('hostAssigned', players[playerKeys[newHostIndex]]);
+        io.to(players[playerId].roomId).emit('scoreUpdate');
+        io.to(players[playerId].roomId).emit('hostAssigned', players[playerKeys[newHostIndex]]);
         console.log("\nNew Host is being Selected\n");
       }
     }
     else {
       // remove this player from our players object
-      delete players[socket.id];
+      delete players[playerId];
     }
     if(Object.keys(players).length <= 0) {
       enemyStates = {};
@@ -112,42 +117,42 @@ var sockets = function(socket, io) {
 
   // when a player moves, update the player data
   socket.on('playerMovement', function (movementData) {
-    players[socket.id].x = movementData.x;
-    players[socket.id].y = movementData.y;
+    players[playerId].x = movementData.x;
+    players[playerId].y = movementData.y;
     // emit a message to all players about the player that moved
-    io.to(players[socket.id].roomId).emit('playerMoved', players[socket.id]);
+    io.to(players[playerId].roomId).emit('playerMoved', players[playerId]);
   });
 
   //When a player fires, emit the fire location to the other players
   socket.on('playerFire', function(data) {
-    io.to(players[socket.id].roomId).emit('playerFired', data)
+    io.to(players[playerId].roomId).emit('playerFired', data)
   });
 
   //When an enemy fires, emit the fire location to the other players
   socket.on('enemyShoot', function(data) {
-    io.to(players[socket.id].roomId).emit('enemyFired', data)
+    io.to(players[playerId].roomId).emit('enemyFired', data)
   });
 
   //When a player hits an enemy, emit this to the other players
   socket.on('enemyHit', function(data){
     //console.log(data);
     //delete enemyStates[data.enemyId];
-    io.to(players[socket.id].roomId).emit('hitEnemy', data);
+    io.to(players[playerId].roomId).emit('hitEnemy', data);
   });
 
   //When the client loads the required fonts, send the client the required score data
   socket.on('fontsLoaded', function() {
-    io.to(`${socket.id}`).emit('scoreUpdate');
+    socket.emit('scoreUpdate');
   });
 
   socket.on('enemyState', function(enemyData) {
     //enemyStates[enemyData.id] = enemyData;
-    io.to(players[socket.id].roomId).emit('updateEnemyState', enemyData);
+    io.to(players[playerId].roomId).emit('updateEnemyState', enemyData);
   });
 
   socket.on('changeGameManager', function(data) {
     console.log("Sending GameManager");
-    io.to(players[socket.id].roomId).emit('updateGameManager', data);
+    io.to(players[playerId].roomId).emit('updateGameManager', data);
   })
   }
 
