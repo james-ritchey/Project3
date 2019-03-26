@@ -1,15 +1,13 @@
 import React, { Component } from "react";
 import { Link, Redirect } from "react-router-dom";
-import openSocket from 'socket.io-client';
 
 
 class RoomTable extends Component {
 
     constructor(props) {
       super(props);
-
       this.state = {
-        socket: openSocket('http://localhost:4000'),
+        socket: this.props.socket,
         gameIdList: [],
         gameCreator: false
       }
