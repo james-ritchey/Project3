@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import Phaser from 'phaser';
 import openSocket from 'socket.io-client';
-/* eslint react/prop-types: 0 */
 
 export class Game extends Component {
   componentDidMount() {
@@ -829,8 +828,8 @@ export class Game extends Component {
   render() {
     return (
       <div className="phaser-div">
-        <h1>{console.log(this.props)}</h1>
         <div id="phaser-game"></div>
+        <Nav />
       </div>
       
     );
