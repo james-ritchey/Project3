@@ -1,24 +1,29 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
+import openSocket from 'socket.io-client';
 
 
 class RoomTable extends Component {
+
+    constructor(props) {
+      super(props);
+
+      this.state = {
+        socket: openSocket('http://localhost:4000')
+      }
+
+      let self = this;
+      this.state.socket.on('gameCreated', (game) => {
+        console.log(game);
+      })
+    }
     
     render() {
         return (
             <div>
                 <h3>Lobby</h3>
                 <ul>
-                <li><Link to={{ pathname: '/game/1', state: { users: this.props.user } }}>Room 1</Link></li>
-                <li><Link to={{ pathname: '/game/2', state: { users: this.props.user } }}>Room 2</Link></li>
-                <li><Link to={{ pathname: '/game/3', state: { users: this.props.user } }}>Room 3</Link></li>
-                <li><Link to={{ pathname: '/game/4', state: { users: this.props.user } }}>Room 4</Link></li>
-                <li><Link to={{ pathname: '/game/5', state: { users: this.props.user } }}>Room 5</Link></li>
-                <li><Link to={{ pathname: '/game/6', state: { users: this.props.user } }}>Room 6</Link></li>
-                <li><Link to={{ pathname: '/game/7', state: { users: this.props.user } }}>Room 7</Link></li>
-                <li><Link to={{ pathname: '/game/8', state: { users: this.props.user } }}>Room 8</Link></li>
-                <li><Link to={{ pathname: '/game/9', state: { users: this.props.user } }}>Room 9</Link></li>
-                <li><Link to={{ pathname: '/game/10', state: { users: this.props.user } }}>Room 10</Link></li>
+                <li><Link to={{ pathname: '/game', state: { users: this.props.user } }}>Room 1</Link></li>
                 </ul>
             </div>
         )
