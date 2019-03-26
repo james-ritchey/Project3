@@ -1,6 +1,10 @@
 import React, { Component } from "react";
 import { Redirect } from 'react-router-dom';
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import openSocket from 'socket.io-client';
+
+import SocketContext from './socketContext';
+
 import './App.css';
 import Landing from './pages/Landing';
 import Game from './pages/Game';
@@ -8,12 +12,15 @@ import User from './api/Users';
 import Lobby from './pages/Lobby';
 
 
+
 class App extends Component {
   state = {
     user: {
       isAuth: false,
-      username: ""
-    }
+      username: "",
+      
+    },
+    socket: openSocket('http://localhost:4000')
   }
 
   onLogin = (event) => {
@@ -39,20 +46,24 @@ class App extends Component {
       <Router>
       <div>
         {console.log(this.state)}
-        <Switch>
-          <Route exact path="/lobby"
-            render={() => this.state.user.isAuth ? (<Lobby user={this.state.user} />) : (<Redirect to="/" />)}
-          />
-          <Route path="/game"
+        <SocketContext.Provider value={this.state.socket}>
+          <Switch>
             
-            render={({location}) => this.state.user.isAuth ? (<Game user={location.state} />) : (<Redirect to="/" />)}
-          />
-          <Route path='/'
-            render={() => <Landing user={this.state.user} onLogin={this.onLogin} onSignup={this.onSignup}  />}
-          /> 
-        </Switch>
+            <Route exact path="/lobby"
+              render={() => this.state.user.isAuth ? (<Lobby user={this.state.user} />) : (<Redirect to="/" />)}
+            />
+            <Route path="/game"
+              
+              render={({location}) => this.state.user.isAuth ? (<Game data={location.state} />) : (<Redirect to="/" />)}
+            />
+            <Route path='/'
+              render={() => <Landing user={this.state.user} onLogin={this.onLogin} onSignup={this.onSignup}  />}
+            /> 
+          </Switch>
+        </SocketContext.Provider>
       </div>
     </Router>
+    
     );
   }
 }

@@ -1,15 +1,13 @@
 import React, { Component } from "react";
 import { Link, Redirect } from "react-router-dom";
-import openSocket from 'socket.io-client';
 
 
 class RoomTable extends Component {
 
     constructor(props) {
       super(props);
-
       this.state = {
-        socket: openSocket('http://localhost:4000'),
+        socket: this.props.socket,
         gameIdList: [],
         gameCreator: false,
         playerId: null
@@ -38,10 +36,18 @@ class RoomTable extends Component {
       this.setState({ gameCreator: true })
     }
 
+    joinGame = (gameId) => {
+      const data = {
+        gameId: gameId
+      };
+      
+      this.state.socket.emit('joinGame', data)
+    }
+
     createGameList = () => {
       let htmlArray = [];
       for(let i = 0; i < this.state.gameIdList.length; i++) {
-        htmlArray.push(<li><Link to={{ pathname: '/game', state: { gameId: this.state.gameIdList[i] } }}>Room {this.state.gameIdList[i]}</Link></li>)
+        htmlArray.push(<li><Link onClick={() => this.joinGame(this.state.gameIdList[i])} to={{ pathname: '/game', state: { host: false } }}>Room {this.state.gameIdList[i]}</Link></li>)
       }
 
       return htmlArray;
@@ -55,7 +61,7 @@ class RoomTable extends Component {
                   {this.createGameList()}
                 </ul>
                 {console.log(this.state.socket)}
-                <Link onClick={this.createGame} to={{pathname: '/game', state: { gameId: "test" }}}>
+                <Link onClick={this.createGame} to={{pathname: '/game', state: { host: true }}}>
                   Test
                 </Link>
             </div>

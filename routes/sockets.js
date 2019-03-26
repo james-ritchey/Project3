@@ -19,15 +19,14 @@ var sockets = function(socket, io) {
     }
   });
 
-  if(Object.keys(players).length === 1) {
-    players[playerId].isHost = true;
-    //scores.host = socket.id;
-  }
+
 
   // createGame event received from frontend.
   socket.on('createGame', function() {
       // randomly generated gameId - to do a socket.join to that room and leave the lobby.
       var gameId = (Math.random()+1).toString(36).slice(2, 18);
+      players[socket.id].isHost = true;
+        //scores.host = socket.id;
       // join client to newly generated game
       socket.join(gameId);
       // update player roomId to gameId
@@ -67,22 +66,24 @@ var sockets = function(socket, io) {
       // drop player from lobby
       socket.leave('lobby');
       // bring in the separate sockets file for phaser socket stuff
-      require('./routes/sockets')(socket, io);
       // emit 'gameJoined' event to frontend clients still in the lobby.
       io.to('lobby').emit('gameJoined');
+      console.log(players)
       // emit 'currentGameJoin' event to other players in an existing game session so they can add that player to their game instances' list of connected players on the client.
       io.in(data.gameId).emit('currentGameJoin', {
-        player: players[playerId],
-        gameId: gameId
+        player: players[socket.id],
+        gameId: data.gameId
       });
+
+        // send the players object to the new player
+        io.in(players[socket.id].roomId).emit('currentPlayers', players);
+        // send the current scores
+        io.in(players[socket.id].roomId).emit('scoreUpdate');
+        // update all other players of the new player
+        io.to(players[socket.id].roomId).emit('newPlayer', players[socket.id]);
     });
 
-  // send the players object to the new player
-  io.in(players[playerId].roomId).emit('currentPlayers', players);
-  // send the current scores
-  io.in(players[playerId].roomId).emit('scoreUpdate');
-  // update all other players of the new player
-  io.to(players[playerId].roomId).emit('newPlayer', players[playerId]);
+
 
   socket.on('disconnect', function () {
     console.log('user disconnected\n');
