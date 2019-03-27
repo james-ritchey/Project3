@@ -12,26 +12,6 @@ export class Game extends Component {
       gameCreator: false,
       players: {}
     }
-    console.log("--------------------------Proms");
-    console.log(this.props);
-    this.state.socket.on('thisGameCreated', (data) => {
-      let mergedPlayers = Object.assign({}, this.state.players, data.players);
-      this.setState({ players: mergedPlayers });
-      console.log("-----Create-------");
-      console.log("Game is joined.  Updated players object is: ");
-      console.log(this.state.players);
-      console.log("--------------------");
-    });
-
-    this.state.socket.on('currentGameJoin', (data) => {
-      let mergedPlayers = Object.assign({}, this.state.players, data.players);
-      this.setState({ players: mergedPlayers });
-      console.log(data);
-      console.log("------Join--------");
-      console.log("Game is joined.  Updated players object is: ");
-      console.log(this.state.players);
-      console.log("--------------------");
-    });
 
     if(this.props.host === true) {
       this.state.socket.emit('createGame')
@@ -39,7 +19,6 @@ export class Game extends Component {
       const data = {
         gameId: this.props.gameId
       };
-      console.log("hoin")
       this.state.socket.emit('joinGame', data)
     }
 

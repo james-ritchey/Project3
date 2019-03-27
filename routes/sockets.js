@@ -49,10 +49,6 @@ var sockets = function(socket, io) {
       // emit a 'gameCreated' event to connected frontend clients in order to display the game lobby to all connected users
 
       // emit a 'thisGameCreated' event to the frontend that created the game so they can be added to that game instances' player list.
-      io.in(gameId).emit('thisGameCreated', {
-          player: players[socket.id],
-          gameId: gameId
-      });
       //Make list of players with correct room id
       let playerList = [];
       for(let player in players) {
