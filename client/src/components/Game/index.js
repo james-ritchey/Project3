@@ -12,19 +12,43 @@ export class Game extends Component {
       gameCreator: false,
       players: {}
     }
+    console.log("--------------------------Proms");
+    console.log(this.props);
     this.state.socket.on('thisGameCreated', (data) => {
-      this.setState({players: data.player})
-      console.log("--------------------");
-      console.log("Game is created.  Updated players object is: ");
+      let mergedPlayers = Object.assign({}, this.state.players, data.players);
+      this.setState({ players: mergedPlayers });
+      console.log("-----Create-------");
+      console.log("Game is joined.  Updated players object is: ");
       console.log(this.state.players);
       console.log("--------------------");
     });
+
+    this.state.socket.on('currentGameJoin', (data) => {
+      let mergedPlayers = Object.assign({}, this.state.players, data.players);
+      this.setState({ players: mergedPlayers });
+      console.log(data);
+      console.log("------Join--------");
+      console.log("Game is joined.  Updated players object is: ");
+      console.log(this.state.players);
+      console.log("--------------------");
+    });
+
+    if(this.props.host === true) {
+      this.state.socket.emit('createGame')
+    } else if(this.props.gameId !== undefined) {
+      const data = {
+        gameId: this.props.gameId
+      };
+      console.log("hoin")
+      this.state.socket.emit('joinGame', data)
+    }
+
+
   }
   
 
   componentDidMount() {
     let socket = this.props.socket;
-    console.log("players", this.props.players)
     var config = {
       type: Phaser.AUTO,
       parent: 'phaser-game',
@@ -118,9 +142,10 @@ export class Game extends Component {
           active: function ()
           {
               self.currentRound = add.text(16, 16, 'Round: 1', { fontSize: '32px', fill: '#ffffff', fontFamily: 'Share Tech'});
-              // self.localScore = add.text(16, 48, gameManager.players[self.socket.id].name + ": 0", { fontSize: '32px', fill: '#FF0000', fontFamily: 'Share Tech' });
+              //self.localScore = add.text(16, 48, gameManager.players[self.socket.id].name + ": 0", { fontSize: '32px', fill: '#FF0000', fontFamily: 'Share Tech' });
               self.livesText = add.text(config.width - 112, 16, 'Lives: 3', {fontSize: "32px", fill: "#ffffff", fontFamily: 'Share Tech', align: 'right'});
               self.gameOverText = add.text(config.width / 5, config.height / 3, '', {fontSize: "64px", fill: "#ffffff", fontFamily: 'Share Tech', align: 'center'});
+              //self.localScore = "";
               //self.socket.emit('fontsLoaded');
               setScore = true;
           }
@@ -130,8 +155,8 @@ export class Game extends Component {
 
       this.socket.on('currentPlayers', function (players) {
           console.log("Players: " + Object.keys(players).length);
-
           Object.keys(players).forEach(function (id) {
+            console.log(players[id])
               if (players[id].playerId === self.socket.id) {
                   addPlayer(self, players[id]);
               } 
@@ -180,7 +205,7 @@ export class Game extends Component {
       this.socket.on('scoreUpdate', function () {
           if(setScore) {
               self.currentRound.setText('Round: ' + gameManager.round);
-              self.localScore.setText(gameManager.players[self.socket.id].name + ": " + gameManager.players[self.socket.id].score);
+              //self.localScore.setText(gameManager.players[self.socket.id].name + ": " + gameManager.players[self.socket.id].score);
                 Object.keys(gameManager.scoreTexts).forEach(function(key) {
                     gameManager.scoreTexts[key].setText(gameManager.players[key].name + ": " + gameManager.players[key].score)
                 })
@@ -193,6 +218,7 @@ export class Game extends Component {
               var bullet = bullets.get();
               if (bullet)
               {
+                  console.log(bullet);
                   bullet.playerId = firePos.playerId;
                   bullet.fire(firePos.x, firePos.y);
               }
@@ -242,7 +268,7 @@ export class Game extends Component {
               self.currentRound.setText("Round: " + gameManager.round);
               Object.keys(gameManager.players).forEach(function(playerId){
                   if(playerId === self.socket.id){
-                      self.localScore.setText(gameManager.players[playerId].name + ": " + gameManager.players[self.socket.id].score);
+                      //self.localScore.setText(gameManager.players[playerId].name + ": " + gameManager.players[self.socket.id].score);
                   }
                   else {
                       gameManager.scoreTexts[playerId].setText(gameManager.players[playerId].name + ": " + gameManager.players[playerId].score);
@@ -388,7 +414,7 @@ export class Game extends Component {
               gameManager.players[playerId].score += this.score;
               console.log(gameManager.scoreTexts);
               if(playerId === self.socket.id){
-                  self.localScore.setText(gameManager.players[playerId].name + ": " + gameManager.players[playerId].score);
+                  //self.localScore.setText(gameManager.players[playerId].name + ": " + gameManager.players[playerId].score);
               }
               else {
                   gameManager.scoreTexts[playerId].setText(gameManager.players[playerId].name + ": " + gameManager.players[playerId].score);
@@ -744,7 +770,7 @@ export class Game extends Component {
             gameManager.players[key].lives = 3;
         });
         game.livesText.setText("Lives: " + gameManager.players[game.socket.id].lives)
-        game.localScore.setText(gameManager.players[game.socket.id].name + ": " + gameManager.players[game.socket.id].score);
+        //game.localScore.setText(gameManager.players[game.socket.id].name + ": " + gameManager.players[game.socket.id].score);
         Object.keys(gameManager.scoreTexts).forEach(function(key) {
             gameManager.scoreTexts[key].setText(gameManager.players[key].name + ": " + gameManager.players[key].score);
         });

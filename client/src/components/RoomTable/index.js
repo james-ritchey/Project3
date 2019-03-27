@@ -14,40 +14,18 @@ class RoomTable extends Component {
         playerId: null,
         players: {}
       }
-      
       this.state.socket.on('gameCreated', ({gameId}) => {
         let gameList = this.state.gameIdList;
         gameList.push(gameId);
         this.setState({ gameIdList: gameList });
       });
 
-      this.state.socket.on('currentGameJoin', (data) => {
-        let mergedPlayers = Object.assign({}, this.state.players, data.player);
-        this.setState({ players: mergedPlayers });
-        console.log("--------------------");
-        console.log("Game is joined.  Updated players object is: ");
-        console.log(this.state.players);
-        console.log("--------------------");
-      });
-    }
-
-    createGame = () => {
-      this.state.socket.emit('createGame')
-      this.setState({ gameCreator: true })
-    }
-
-    joinGame = (gameId) => {
-      const data = {
-        gameId: gameId
-      };
-      
-      this.state.socket.emit('joinGame', data)
     }
 
     createGameList = () => {
       let htmlArray = [];
       for(let i = 0; i < this.state.gameIdList.length; i++) {
-        htmlArray.push(<li><Link onClick={() => this.joinGame(this.state.gameIdList[i])} to={{ pathname: '/game', state: { host: false } }}>Room {this.state.gameIdList[i]}</Link></li>)
+        htmlArray.push(<li><Link to={{ pathname: '/game', state: { host: false, gameId: this.state.gameIdList[i] } }}>Room {this.state.gameIdList[i]}</Link></li>)
       }
 
       return htmlArray;
@@ -60,8 +38,7 @@ class RoomTable extends Component {
                 <ul>
                   {this.createGameList()}
                 </ul>
-                {console.log(this.state.socket)}
-                <Link onClick={this.createGame} to={{pathname: '/game', state: { host: true }}}>
+                <Link to={{pathname: '/game', state: { host: true }}}>
                   Test
                 </Link>
             </div>

@@ -1,3 +1,6 @@
+const util = require('util');
+const setTimeoutPromise = util.promisify(setTimeout);
+
 var players = {};
 //var game_config = require("../public/game_config.json");
 var games = {};
@@ -25,6 +28,9 @@ var sockets = function(socket, io) {
       socket.join(gameId);
       // update player roomId to gameId
       players[socket.id].roomId = gameId;
+      io.to('lobby').emit('gameCreated', {
+        gameId: gameId
+      });
       // drop player from lobby
       socket.leave('lobby');
       // bring in the sockets file for phaser socket stuff.
@@ -41,14 +47,27 @@ var sockets = function(socket, io) {
       console.log("contents of player object who created game:");
       console.log(players[socket.id]);
       // emit a 'gameCreated' event to connected frontend clients in order to display the game lobby to all connected users
-      io.to('lobby').emit('gameCreated', {
-        gameId: gameId
-      });
+
       // emit a 'thisGameCreated' event to the frontend that created the game so they can be added to that game instances' player list.
       io.in(gameId).emit('thisGameCreated', {
-        player: players[socket.id],
-        gameId: gameId
+          player: players[socket.id],
+          gameId: gameId
       });
+      //Make list of players with correct room id
+      let playerList = [];
+      for(let player in players) {
+        if(players[player].roomId === players[socket.id].roomId) {
+          playerList.push(players[player]);
+        }
+      }
+      // send the players object to the new player
+      setTimeoutPromise(2000).then(() => {
+        io.in(players[socket.id].roomId).emit('currentPlayers', playerList);
+      });
+      
+      // send the current scores
+      io.in(players[socket.id].roomId).emit('scoreUpdate');
+      // update all other players of the new player
     });
 
     // joinGame event received from frontend.  'data' variable will contain the gameId, which is stored as a data attribute in the link used to join the active game session.
@@ -62,22 +81,30 @@ var sockets = function(socket, io) {
       // bring in the separate sockets file for phaser socket stuff
       // emit 'gameJoined' event to frontend clients still in the lobby.
       io.to('lobby').emit('gameJoined');
-      console.log(players)
+      console.log("Join id")
+      console.log(players[socket.id])
       // emit 'currentGameJoin' event to other players in an existing game session so they can add that player to their game instances' list of connected players on the client.
-      io.in(data.gameId).emit('currentGameJoin', {
-        player: players[socket.id],
-        gameId: data.gameId
+      // io.in(data.gameId).emit('currentGameJoin', {
+      //   player: players[socket.id],
+      //   gameId: data.gameId
+      // });
+
+      // send the players object to the new player
+      
+      //Make list of players with correct room id
+      let playerList = [];
+      for(let player in players) {
+        if(players[player].roomId === players[socket.id].roomId) {
+          playerList.push(players[player]);
+        }
+      }
+      setTimeoutPromise(2000).then(() => {
+        io.in(players[socket.id].roomId).emit('currentPlayers', playerList);
       });
-
-        // send the players object to the new player
-        io.in(players[socket.id].roomId).emit('currentPlayers', players);
-        // send the current scores
-        io.in(players[socket.id].roomId).emit('scoreUpdate');
-        // update all other players of the new player
-        io.to(players[socket.id].roomId).emit('newPlayer', players[socket.id]);
+      // send the current scores
+      io.in(players[socket.id].roomId).emit('scoreUpdate');
+      // update all other players of the new player
     });
-
-
 
   socket.on('disconnect', function () {
     console.log('user disconnected\n');
