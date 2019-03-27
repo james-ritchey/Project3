@@ -78,6 +78,10 @@ export class Game extends Component {
       this.load.image('enemyParticles', 'assets/enemy_particle.png');
       this.load.image('playerParticles', 'assets/player_particle.png');
       this.load.image('restartButton', 'assets/restart_btn.png');
+
+      this.load.audio('playerShoot', 'assets/player_shoot.mp3');
+      this.load.audio('playerDeath', 'assets/player_death.mp3');
+      this.load.audio('enemyDeath', 'assets/enemy_death.mp3');
     }
 
     var bullets = null;
@@ -95,7 +99,11 @@ export class Game extends Component {
       
       this.socket = openSocket('http://localhost:4000');
       this.otherPlayers = this.physics.add.group();
-      this.playerGroup = this.physics.add.group();        
+      this.playerGroup = this.physics.add.group();
+      
+      this.playerShootSound = this.sound.add('playerShoot');
+      this.playerDeathSound = this.sound.add('playerDeath');
+      this.enemyDeathSound = this.sound.add('enemyDeath');
 
       this.socket.on('currentPlayers', function (players) {
           console.log("Players: " + Object.keys(players).length);
@@ -370,6 +378,7 @@ export class Game extends Component {
           hit: function(playerId) {
             enemyDeathEmitter.setPosition(this.x, this.y);
             enemyDeathEmitter.explode(15);
+            self.enemyDeathSound.play();
               if(isHost) {
                   this.isAlive = false;
                   this.setPosition(400, -100);
@@ -501,6 +510,7 @@ export class Game extends Component {
         if(gmPlayer.isAlive) {
             playerDeathEmitter.setPosition(player.x, config.height - 64);
             playerDeathEmitter.explode(15);
+            self.playerDeathSound.play();
             self.socket.emit('playerHit', { x: player.x, y: player.y });
         }
         enemyBullet.destroy();            
@@ -589,6 +599,7 @@ export class Game extends Component {
             //The player fires when they press the fire button, currently the 'space bar'
             if (Phaser.Input.Keyboard.JustDown(fireButton))
             {
+                this.playerShootSound.play();
                 //console.log(gameManager);
                 if(isHost) {
                     
