@@ -61,7 +61,11 @@ export class Game extends Component {
     // Preload function for the Phaser engine
     function preload() {
       this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
-
+      var head  = document.getElementsByTagName('head')[0];
+      var link  = document.createElement('link');
+      link.rel  = 'stylesheet';
+      link.href = 'https://fonts.googleapis.com/css?family=Press+Start+2P';
+      head.appendChild(link);
       //Load the required image assets into the engine
       this.load.image('ship', 'assets/player1.png');
       this.load.image('otherShip', 'assets/player2.png');
@@ -71,6 +75,9 @@ export class Game extends Component {
       this.load.image('background', 'assets/voyager_game_bg.png');
       this.load.image('stars1', "assets/voyager_game_stars1.png");
       this.load.image('stars2', "assets/voyager_game_stars2.png");
+      this.load.image('enemyParticles', 'assets/enemy_particle.png');
+      this.load.image('playerParticles', 'assets/player_particle.png');
+      this.load.image('restartButton', 'assets/restart_btn.png');
     }
 
     var bullets = null;
@@ -88,24 +95,7 @@ export class Game extends Component {
       
       this.socket = openSocket('http://localhost:4000');
       this.otherPlayers = this.physics.add.group();
-      this.playerGroup = this.physics.add.group();
-    // eslint-disable-next-line
-      WebFont.load({
-          google: {
-              families: [ 'Share Tech' ]
-          },
-          active: function ()
-          {
-              self.currentRound = add.text(16, 16, 'Round: 1', { fontSize: '32px', fill: '#ffffff', fontFamily: 'Share Tech'});
-              self.localScore = add.text(16, 48, gameManager.players[self.socket.id].name + ": 0", { fontSize: '32px', fill: '#FF0000', fontFamily: 'Share Tech' });
-              self.livesText = add.text(config.width - 112, 16, 'Lives: 3', {fontSize: "32px", fill: "#ffffff", fontFamily: 'Share Tech', align: 'right'});
-              self.gameOverText = add.text(config.width / 5, config.height / 3, '', {fontSize: "64px", fill: "#ffffff", fontFamily: 'Share Tech', align: 'center'});
-              self.socket.emit('fontsLoaded');
-              setScore = true;
-          }
-      });
-        // self.currentRound = add.text(16, 16, 'Round: 1', { fontSize: '32px', fill: '#ffffff', /*fontFamily: 'Share Tech'*/});
-        // self.localScore = add.text(16, 48, self.socket.id + ': 0', { fontSize: '32px', fill: '#FF0000', /*fontFamily: 'Share Tech' */});
+      this.playerGroup = this.physics.add.group();        
 
       this.socket.on('currentPlayers', function (players) {
           console.log("Players: " + Object.keys(players).length);
@@ -167,7 +157,6 @@ export class Game extends Component {
               self.localScore.setText(gameManager.players[self.socket.id].name + ": " + gameManager.players[self.socket.id].score);
                 Object.keys(gameManager.scoreTexts).forEach(function(key) {
                     gameManager.scoreTexts[key].setText(gameManager.players[key].name + ": " + gameManager.players[key].score)
-                    gameManager.scoreTexts[key].setFontFamily('Share Tech');
                 });
             }
       });
@@ -235,6 +224,11 @@ export class Game extends Component {
               });
               self.livesText.setText("Lives: " + gameManager.players[self.socket.id].lives);
           }
+      });
+
+      this.socket.on('hitPlayer', function(data){
+        playerDeathEmitter.setPosition(data.x, config.height - 64);
+        playerDeathEmitter.explode(15);
       });
 
       this.socket.on('killPlayer', function(player) {
@@ -374,6 +368,8 @@ export class Game extends Component {
           },
 
           hit: function(playerId) {
+            enemyDeathEmitter.setPosition(this.x, this.y);
+            enemyDeathEmitter.explode(15);
               if(isHost) {
                   this.isAlive = false;
                   this.setPosition(400, -100);
@@ -392,6 +388,7 @@ export class Game extends Component {
               else {
                   gameManager.scoreTexts[playerId].setText(gameManager.players[playerId].name + ": " + gameManager.players[playerId].score);
               }
+            
           },
 
           setState: function(data) {
@@ -479,6 +476,8 @@ export class Game extends Component {
       });
       this.physics.add.overlap(enemyBullets, self.playerGroup, playerHit);
       this.physics.add.overlap(enemyBullets, bullets, function(enemyBullet, bullet) {
+          bulletCollision.setPosition(enemyBullet.x, enemyBullet.y);
+          bulletCollision.explode(10);
           bullet.destroy();
           enemyBullet.destroy();
       });
@@ -493,30 +492,84 @@ export class Game extends Component {
           bullet.destroy();
           self.socket.emit('enemyHit', { enemyId: enemy.id, playerId: bullet.playerId });
           //self.socket.emit('enemyState', {id: this.id, kill: true});
+          
           enemy.hit(bullet.playerId);
       };
 
-        function playerHit(enemyBullet, player) {
-            enemyBullet.destroy();
-            var gmPlayer = gameManager.players[player.playerId];
-            if(gmPlayer.lives > 0 && gmPlayer.isAlive) {
-                player.setPosition(config.width / 2, config.height + 100);
-                gmPlayer.isAlive = false;
-                gmPlayer.lives -= 1;
-                if(player.playerId === self.socket.id) {
-                    self.livesText.setText("Lives: " + gmPlayer.lives);
-                    if(gmPlayer.lives <= 0) {
-                        killPlayer(player);
-                        self.socket.emit('playerKilled', { id: player.playerId });
-                    }
-                    else {
-                        respawnPlayer(player);
-                    }
+    function playerHit(enemyBullet, player) {
+        var gmPlayer = gameManager.players[player.playerId];
+        if(gmPlayer.isAlive) {
+            playerDeathEmitter.setPosition(player.x, config.height - 64);
+            playerDeathEmitter.explode(15);
+            self.socket.emit('playerHit', { x: player.x, y: player.y });
+        }
+        enemyBullet.destroy();            
+        if(gmPlayer.lives > 0 && gmPlayer.isAlive) {
+            player.setPosition(config.width / 2, config.height + 100);
+            gmPlayer.isAlive = false;
+            gmPlayer.lives -= 1;
+            if(player.playerId === self.socket.id) {
+                self.livesText.setText("Lives: " + gmPlayer.lives);
+                if(gmPlayer.lives <= 0) {
+                    killPlayer(player);
+                    self.socket.emit('playerKilled', { id: player.playerId });
+                }
+                else {
+                    respawnPlayer(player);
                 }
             }
         }
+    }
 
       createEnemies(enemies);
+
+    self.currentRound = add.text(16, 16, 'Round: 1', { fontSize: '16px', fill: '#ffffff', fontFamily: '\'Press Start 2P\', serif'});
+    self.gameOverText = add.text(115, config.height / 3, 'GAME OVER', {fontSize: "64px", fill: "#ffffff", fontFamily: '\'Press Start 2P\', serif', align: 'center'}).setVisible(false);
+
+    self.restartButton = self.add.sprite(config.width / 2, 330, 'restartButton').setDisplaySize(400, 100);
+    self.restartButton.setInteractive({ useHandCursor: true });
+    self.restartButton.on('pointerover', () => {
+          self.restartButton.setPosition(config.width / 2, 335);
+    });
+      self.restartButton.on('pointerout', () => {
+        self.restartButton.setPosition(config.width / 2, 330);
+    });
+    self.restartButton.on('pointerdown', () => {
+        restartGame(self);
+    });
+    self.restartButton.setVisible(false);
+      setScore = true;
+
+    var enemyDeathEmitter = this.add.particles('enemyParticles').createEmitter({
+        x: -400,
+        y: 300,
+        speed: { min: -150, max: 150 },
+        angle: { min: 0, max: 360 },
+        scale: { start: 1, end: 0 },
+        blendMode: 'SCREEN',
+        //active: false,
+        lifespan: 400,
+    });
+    var playerDeathEmitter = this.add.particles('playerParticles').createEmitter({
+        x: -400,
+        y: 300,
+        speed: { min: -200, max: 200 },
+        angle: { min: 0, max: 360 },
+        scale: { start: 1, end: 0 },
+        blendMode: 'SCREEN',
+        //active: false,
+        lifespan: 500,
+    });
+    var bulletCollision = this.add.particles('enemyParticles').createEmitter({
+        x: -400,
+        y: 300,
+        speed: { min: -100, max: 100 },
+        angle: { min: 0, max: 360 },
+        scale: { start: 0.4, end: 0 },
+        blendMode: 'SCREEN',
+        //active: false,
+        lifespan: 400,
+    });
     // === End of the create() function ===
     }
 
@@ -603,9 +656,6 @@ export class Game extends Component {
             console.log("Starting game");
             gameManager.started = true;
             newRound(gameManager.round); 
-        }
-        if(this.gameOver && Phaser.Input.Keyboard.JustDown(resetButton)) {
-            restartGame(self);
         }
         if(gameManager.numOfDeadPlayers >= Object.keys(gameManager.players).length) {
             gameOver(self);
@@ -744,12 +794,12 @@ export class Game extends Component {
     function gameOver(game) {
         game.gameOver = true;
         gameManager.started = false;
+        game.gameOverText.setVisible(true);
         if(isHost) {
-            game.gameOverText.setText('GAME OVER\n(Press \'R\' to restart)');
+            game.restartButton.setActive(true);
+            game.restartButton.setVisible(true);   
         }
-        else {
-            game.gameOverText.setText('GAME OVER\n(Waiting for host to restart)');
-        }
+       
     }
 
     function killPlayer(player) {
@@ -784,11 +834,13 @@ export class Game extends Component {
         enemies.getChildren().forEach(function(enemy) {
             enemy.clear();
         });
-        game.gameOverText.setText("");
+        game.gameOverText.setVisible(false);
         game.gameOver = false;
         gameManager.players[game.socket.id].isAlive = true;
         game.ship.setPosition(config.width / 2, config.height - 64);
         enemyBullets.clear(true, true);
+        game.restartButton.setActive(false);
+        game.restartButton.setVisible(false);  
     }
 
     function addBackground(game) {
@@ -807,6 +859,8 @@ export class Game extends Component {
       var playerNum = (Object.keys(gameManager.players).length + 1);
       gameManager.players[self.socket.id] = { score: 0, name: "Player " + playerNum, lives: 3, isAlive: true};
       self.playerGroup.add(self.ship);
+      self.localScore = self.add.text(16, 48, gameManager.players[self.socket.id].name + ": 0", { fontSize: '16px', fill: '#f1632e', fontFamily: '\'Press Start 2P\', serif' });
+      self.livesText = self.add.text(config.width - 140, 16, 'Lives: 3', {fontSize: "16px", fill: "#ffffff", fontFamily: '\'Press Start 2P\', serif', align: 'right'});
     }
 
     function addOtherPlayers(self, playerInfo) {
@@ -816,7 +870,7 @@ export class Game extends Component {
       self.playerGroup.add(otherPlayer);
       var playerNum = (Object.keys(gameManager.players).length + 1);
       gameManager.players[otherPlayer.playerId] = { score: 0, name: "Player " + playerNum, lives: 3, isAlive: true };
-      gameManager.scoreTexts[otherPlayer.playerId] = self.add.text(16, 72 + (24 * Object.keys(gameManager.scoreTexts).length), gameManager.players[otherPlayer.playerId].name + ": 0", { fontSize: '32px', fill: '#FF0000', fontFamily: 'Share Tech' });
+      gameManager.scoreTexts[otherPlayer.playerId] = self.add.text(16, 64 + (16 * Object.keys(gameManager.scoreTexts).length),gameManager.players[otherPlayer.playerId].name + ": 0", { fontSize: '16px', fill: '#f1632e', fontFamily: '\'Press Start 2P\', serif' });
       if(isHost) {
           self.socket.emit('changeGameManager', gameManager);
       }
@@ -829,7 +883,6 @@ export class Game extends Component {
     return (
       <div className="phaser-div">
         <div id="phaser-game"></div>
-        <Nav />
       </div>
       
     );

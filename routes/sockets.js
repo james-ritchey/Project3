@@ -105,6 +105,9 @@ socket.on('playerKilled', function(player) {
 socket.on('gameOver', function() {
   socket.broadcast.emit('endGame');
 });
+socket.on('playerHit', function(data) {
+  socket.broadcast.emit('hitPlayer', data);
+});
 
 //End of the sockets
 }
