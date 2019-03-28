@@ -12,6 +12,7 @@ function Nav() {
             <div className="lobbyNav">
             <button><Link to={{ pathname: '/lobby'}}>Lobby      </Link><i class="material-icons">assignment</i></button>
             </div>
+
         </div>
     )
 }

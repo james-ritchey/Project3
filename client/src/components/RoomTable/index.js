@@ -41,6 +41,7 @@ class RoomTable extends Component {
                 <Link to={{pathname: '/game', state: { host: true }}}>
                   Test
                 </Link>
+
             </div>
         )
     }

@@ -15,6 +15,7 @@ class Lobby extends Component {
         <SocketContext.Consumer>
           {socket => <RoomTable user={this.props.user} socket={socket} />}
         </SocketContext.Consumer>
+
         </div>
         <div className="HighScoreContainer">
           <HighScoreTable />

@@ -173,4 +173,20 @@ var sockets = function(socket, io) {
   })
   }
 
+socket.on('restartGame', function() {
+  socket.broadcast.emit('restartGame');
+});
+socket.on('playerKilled', function(player) {
+  socket.broadcast.emit('killPlayer', player);
+});
+socket.on('gameOver', function() {
+  socket.broadcast.emit('endGame');
+});
+socket.on('playerHit', function(data) {
+  socket.broadcast.emit('hitPlayer', data);
+});
+
+//End of the sockets
+}
+
 module.exports = sockets;
