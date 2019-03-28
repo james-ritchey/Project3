@@ -72,7 +72,7 @@ var sockets = function(socket, io) {
       });
       
       // send the current scores
-      socket.in(players[socket.id].roomId).emit('scoreUpdate');
+      io.in(players[socket.id].roomId).emit('scoreUpdate');
       // update all other players of the new player
     });
 
@@ -104,21 +104,25 @@ var sockets = function(socket, io) {
         }
       }
       setTimeoutPromise(2000).then(() => {
-        io.in(players[socket.id].roomId).emit('currentPlayers', playerList);
+        io.in(players[socket.id].roomId).emit('currentPlayers', {
+          playerList: playerList,
+          gameId: data.gameId
+        });
       });
       // send the current scores
       io.in(players[socket.id].roomId).emit('scoreUpdate');
       // update all other players of the new player
     });
 
+  socket.on('gameFull', function(data){
+    io.in('lobby').emit('roomRemove', data);
+  });
+  
   socket.on('disconnect', function () {
     console.log('user disconnected\n');
     //If the disconnecting player was the host, find a new one
 
     //Check to see if player is last with roomId
-
-
-
     let roomId = players[socket.id].roomId;
 
     if(players[socket.id].isHost ) {

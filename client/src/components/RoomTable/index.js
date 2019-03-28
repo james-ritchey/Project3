@@ -26,10 +26,11 @@ class RoomTable extends Component {
         this.setState({ gameIdList: updatedList });
       });
 
+
+
       this.state.socket.emit('roomRequest');
 
-      this.state.socket.on('roomResponse', (roomList) => {
-        
+      this.state.socket.on('roomResponse', (roomList) => {  
         this.setState({ gameIdList: roomList });
       })
 
@@ -52,7 +53,7 @@ class RoomTable extends Component {
                   {this.createGameList()}
                 </ul>
                 <Link to={{pathname: '/game', state: { host: true }}}>
-                  Test
+                  Create a Game
                 </Link>
 
             </div>

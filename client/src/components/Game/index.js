@@ -129,13 +129,19 @@ export class Game extends Component {
       this.playerDeathSound = this.sound.add('playerDeath');
       this.enemyDeathSound = this.sound.add('enemyDeath');
 
-      this.socket.on('currentPlayers', function (players) {
-          Object.keys(players).forEach(function (id) {
-              if (players[id].playerId === self.socket.id) {
-                  addPlayer(self, players[id]);
+      this.socket.on('currentPlayers', function (data) {
+          Object.keys(data.playerList).forEach(function (id) {
+              if (data.playerList[id].playerId === self.socket.id) {
+                  addPlayer(self, data.playerList[id]);
               } 
               else {
-                  addOtherPlayers(self, players[id]);
+                  addOtherPlayers(self, data.playerList[id]);
+              }
+
+              if (Object.keys(gameManager.players).length > 2) {
+                this.socket.emit('gameFull', {
+                  gameId: data.gameId
+                })
               }
           });
       });
@@ -184,7 +190,7 @@ export class Game extends Component {
       this.socket.on('scoreUpdate', function () {
           if(setScore) {
               self.currentRound.setText('Round: ' + gameManager.round);
-              //self.localScore.setText(gameManager.players[self.socket.id].name + ": " + gameManager.players[self.socket.id].score);
+              self.localScore.setText(gameManager.players[self.socket.id].name + ": " + gameManager.players[self.socket.id].score);
                 Object.keys(gameManager.scoreTexts).forEach(function(key) {
                     gameManager.scoreTexts[key].setText(gameManager.players[key].name + ": " + gameManager.players[key].score)
                 });
@@ -245,7 +251,7 @@ export class Game extends Component {
               self.currentRound.setText("Round: " + gameManager.round);
               Object.keys(gameManager.players).forEach(function(playerId){
                   if(playerId === self.socket.id){
-                      //self.localScore.setText(gameManager.players[playerId].name + ": " + gameManager.players[self.socket.id].score);
+                      self.localScore.setText(gameManager.players[playerId].name + ": " + gameManager.players[self.socket.id].score);
                   }
                   else {
                       gameManager.scoreTexts[playerId].setText(gameManager.players[playerId].name + ": " + gameManager.players[playerId].score);
@@ -418,7 +424,7 @@ export class Game extends Component {
               gameManager.players[playerId].score += this.score;
               //console.log(gameManager.scoreTexts);
               if(playerId === self.socket.id){
-                  //self.localScore.setText(gameManager.players[playerId].name + ": " + gameManager.players[playerId].score);
+                  self.localScore.setText(gameManager.players[playerId].name + ": " + gameManager.players[playerId].score);
               }
               else {
                   gameManager.scoreTexts[playerId].setText(gameManager.players[playerId].name + ": " + gameManager.players[playerId].score);
@@ -866,7 +872,7 @@ export class Game extends Component {
             gameManager.players[key].lives = 3;
         });
         game.livesText.setText("Lives: " + gameManager.players[game.socket.id].lives)
-        //game.localScore.setText(gameManager.players[game.socket.id].name + ": " + gameManager.players[game.socket.id].score);
+        game.localScore.setText(gameManager.players[game.socket.id].name + ": " + gameManager.players[game.socket.id].score);
         Object.keys(gameManager.scoreTexts).forEach(function(key) {
             gameManager.scoreTexts[key].setText(gameManager.players[key].name + ": " + gameManager.players[key].score);
         });
