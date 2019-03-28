@@ -106,6 +106,7 @@ export class Game extends Component {
       this.load.audio('playerShoot', 'game/assets/player_shoot.mp3');
       this.load.audio('playerDeath', 'game/assets/player_death.mp3');
       this.load.audio('enemyDeath', 'game/assets/enemy_death.mp3');
+      this.load.audio('bgMusic', '/game/assets/Cyborg_Ninja.mp3');
     }
 
     var bullets = null;
@@ -128,6 +129,18 @@ export class Game extends Component {
       this.playerShootSound = this.sound.add('playerShoot');
       this.playerDeathSound = this.sound.add('playerDeath');
       this.enemyDeathSound = this.sound.add('enemyDeath');
+      this.bgMusic = this.sound.add('bgMusic');
+
+      var loopMarker = {
+        name: 'loop',
+        start: 0,
+        duration: 48.007,
+        config: {
+            loop: true
+        }
+      };
+      this.bgMusic.addMarker(loopMarker);
+      this.bgMusic.play('loop', {delay: 0});
 
       this.socket.on('currentPlayers', function (data) {
           Object.keys(data.playerList).forEach(function (id) {
@@ -366,7 +379,7 @@ export class Game extends Component {
           update: function (time, delta){
               if(isHost) {
                   if(this.isAlive) {
-                      if(this.group[0].x > config.width - 50 || this.x > config.width - 50) {
+                      if(this.group[this.group.length - 1].x > config.width - 50 || this.x > config.width - 50) {
                           this.direction = -1;
                           this.body.setVelocityX(this.speed * this.direction);
                       }
