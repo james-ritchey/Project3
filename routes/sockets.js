@@ -124,6 +124,14 @@ var sockets = function(socket, io) {
     });
   });
   
+  socket.on('leftRoom', function(data){
+    socket.leave(data.gameId);
+    socket.join('lobby');
+    io.in(data.gameId).emit('playerLeftRoom', {
+      leavingPlayer: players[socket.id]
+    });
+  });
+
   socket.on('disconnect', function () {
     console.log('user disconnected\n');
     //If the disconnecting player was the host, find a new one
