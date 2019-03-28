@@ -139,9 +139,12 @@ export class Game extends Component {
               }
 
               if (Object.keys(gameManager.players).length > 1) {
-                self.socket.emit('gameFull', {
-                  gameId: data.gameId
-                })
+                if(isHost) {
+                  console.log("Emitting 'gameFull' event to backend: ");
+                  self.socket.emit('gameFull', {
+                    gameId: data.gameId
+                  });
+                }
               }
           });
       });

@@ -117,7 +117,11 @@ var sockets = function(socket, io) {
     });
 
   socket.on('gameFull', function(data){
-    io.in('lobby').emit('roomRemove', data);
+    console.log("Room is full!  Emitting data:");
+    console.log(data);
+    io.in('lobby').emit('roomRemove', {
+      gameId: data.gameId
+    });
   });
   
   socket.on('disconnect', function () {
@@ -170,7 +174,11 @@ var sockets = function(socket, io) {
     let remaining = Object.keys(players).filter((player) => players[player].roomId === roomId);
     
     if(remaining.length === 0) {
-      io.to('lobby').emit('roomRemove', roomId);
+      console.log("No more connected players in room!  Emitting roomRemove with data:");
+      console.log(roomId);
+      io.to('lobby').emit('roomRemove', {
+        gameId: roomId
+      });
     }
     //Add socket back to lobby
     // emit a message to all players to remove this player
