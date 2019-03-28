@@ -1,0 +1,76 @@
+.navContainer button {
+    position: absolute;
+    left: -90px;
+    transition: 0.3s;
+    width: 140px;
+    height: 50px;
+    text-decoration: none !important;
+    text-align: right;
+    font-size: 20px;
+    color: white;
+    border: none;
+    padding-right: 15px;
+  }
+
+  .navContainer :any-link {
+      color: white !important;
+      font-family: 'Press Start 2P', cursive;
+      font-size: 14px;
+  }
+
+  .navContainer :any-link:hover {
+      text-decoration: none !important;
+      color: #F15A24 !important;
+  }
+  
+  .navContainer button:hover {
+    text-decoration: none !important;
+    color: #F15A24 !important;
+    left: 0;
+    border-bottom: #F15A24 solid 5px;
+  }
+
+  .homeNav button {
+    top: 25px;
+    background: rgba(0, 0, 0, .3);
+    border-bottom: white solid 5px;
+  }
+  
+  .lobbyNav button {
+    top: 100px;
+    background: rgba(0, 0, 0, .3);
+    border-bottom: white solid 5px;
+  }
+
+  .highScoreTab {
+    position: absolute;
+    left: -250px;
+    top: 175px;
+    width: 300px;
+    transition: 0.3s;
+    color: white;
+    font-family: 'Press Start 2P', cursive;
+  }
+
+  .highScoreTab:hover {
+    left: 0;
+  }
+
+  .highScoreTab ul{
+    border-top: rgb(255, 255, 255) solid 5px;
+    border-bottom: rgb(255, 255, 255) solid 5px;
+    background: rgba(0, 0, 0, .3);
+    padding: 20px;
+    font-size: 12px;
+  }
+
+  .highScoreTab ul:hover {
+    border-top: #F15A24 solid 5px;
+    border-bottom: #F15A24 solid 5px;
+  }
+
+  .highScoreTab h3 {
+    color: rgb(255, 255, 255);
+    font-size: 15px;
+    text-align: center;
+  }
