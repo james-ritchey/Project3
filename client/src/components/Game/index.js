@@ -130,9 +130,7 @@ export class Game extends Component {
       this.enemyDeathSound = this.sound.add('enemyDeath');
 
       this.socket.on('currentPlayers', function (players) {
-          console.log("Players: " + Object.keys(players).length);
           Object.keys(players).forEach(function (id) {
-            console.log(players[id])
               if (players[id].playerId === self.socket.id) {
                   addPlayer(self, players[id]);
               } 
@@ -194,12 +192,10 @@ export class Game extends Component {
       });
 
       this.socket.on('playerFired', function(firePos) {
-          //console.log(firePos);
           if(isHost) {
               var bullet = bullets.get();
               if (bullet)
               {
-                  console.log(bullet);
                   bullet.playerId = firePos.playerId;
                   bullet.fire(firePos.x, firePos.y);
               }
@@ -242,7 +238,6 @@ export class Game extends Component {
       });
 
       this.socket.on('updateGameManager', function(gameData) {
-          //console.log(gameData);
           gameManager.round = gameData.round;
           gameManager.enemiesOnScreen = gameData.enemiesOnScreen;
           gameManager.players = gameData.players;
@@ -562,12 +557,13 @@ export class Game extends Component {
         }
     }
 
-      createEnemies(enemies);
+    createEnemies(enemies);
 
     self.currentRound = add.text(16, 16, 'Round: 1', { fontSize: '16px', fill: '#ffffff', fontFamily: '\'Press Start 2P\', serif'});
     self.gameOverText = add.text(115, config.height / 3, 'GAME OVER', {fontSize: "64px", fill: "#ffffff", fontFamily: '\'Press Start 2P\', serif', align: 'center'}).setVisible(false);
-
-    self.restartButton = self.add.sprite(config.width / 2, 330, 'restartButton').setDisplaySize(400, 100);
+    
+    
+    self.restartButton = self.add.sprite(config.width / 2, 330, 'restartButton').setDisplaySize(400, 100).setDepth(1).setVisible(false);
     self.restartButton.setInteractive({ useHandCursor: true });
     self.restartButton.on('pointerover', () => {
           self.restartButton.setPosition(config.width / 2, 335);
@@ -578,7 +574,7 @@ export class Game extends Component {
     self.restartButton.on('pointerdown', () => {
         restartGame(self);
     });
-    self.restartButton.setVisible(false);
+    
       setScore = true;
 
     var enemyDeathEmitter = this.add.particles('enemyParticles').createEmitter({
@@ -699,7 +695,7 @@ export class Game extends Component {
             gameManager.started = true;
             newRound(gameManager.round); 
         }
-        if(gameManager.numOfDeadPlayers >= Object.keys(gameManager.players).length) {
+        if(Object.keys(gameManager.players).length !== 0 && gameManager.numOfDeadPlayers >= Object.keys(gameManager.players).length) {
             gameOver(self);
             self.socket.emit('gameOver');
         }
@@ -851,6 +847,7 @@ export class Game extends Component {
 
     function respawnPlayer(player) {
         console.log("Respawning this one: ");
+        console.log(gameManager.players);
         player.targetY = config.height - 64;
         player.setVelocityY(-150);
     }
@@ -895,26 +892,31 @@ export class Game extends Component {
       if(playerInfo.isHost) {
           isHost = true;
       }
-      self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setDisplaySize(135 / scale, 90 / scale);
-      self.ship.setDepth(1);
-      self.ship.playerId = self.socket.id;
-      var playerNum = (Object.keys(gameManager.players).length + 1);
-      gameManager.players[self.socket.id] = { score: 0, name: "Player " + playerNum, lives: 3, isAlive: true};
-      self.playerGroup.add(self.ship);
-      self.localScore = self.add.text(16, 48, gameManager.players[self.socket.id].name + ": 0", { fontSize: '16px', fill: '#f1632e', fontFamily: '\'Press Start 2P\', serif' });
-      self.livesText = self.add.text(config.width - 140, 16, 'Lives: 3', {fontSize: "16px", fill: "#ffffff", fontFamily: '\'Press Start 2P\', serif', align: 'right'});
+
+      if(!Object.keys(gameManager.players).includes(playerInfo.playerId)) {
+        self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setDisplaySize(135 / scale, 90 / scale);
+        self.ship.setDepth(1);
+        self.ship.playerId = self.socket.id;
+        var playerNum = (Object.keys(gameManager.players).length + 1);
+        gameManager.players[self.socket.id] = { score: 0, name: "Player " + playerNum, lives: 3, isAlive: true};
+        self.playerGroup.add(self.ship);
+        self.localScore = self.add.text(16, 48, gameManager.players[self.socket.id].name + ": 0", { fontSize: '16px', fill: '#f1632e', fontFamily: '\'Press Start 2P\', serif' });
+        self.livesText = self.add.text(config.width - 140, 16, 'Lives: 3', {fontSize: "16px", fill: "#ffffff", fontFamily: '\'Press Start 2P\', serif', align: 'right'});
+      }
     }
 
     function addOtherPlayers(self, playerInfo) {
-      const otherPlayer = self.physics.add.image(playerInfo.x, playerInfo.y, 'otherShip').setOrigin(0.5, 0.5).setDisplaySize(135 / scale, 90 / scale);
-      otherPlayer.playerId = playerInfo.playerId;
-      self.otherPlayers.add(otherPlayer);
-      self.playerGroup.add(otherPlayer);
-      var playerNum = (Object.keys(gameManager.players).length + 1);
-      gameManager.players[otherPlayer.playerId] = { score: 0, name: "Player " + playerNum, lives: 3, isAlive: true };
-      gameManager.scoreTexts[otherPlayer.playerId] = self.add.text(16, 64 + (16 * Object.keys(gameManager.scoreTexts).length),gameManager.players[otherPlayer.playerId].name + ": 0", { fontSize: '16px', fill: '#f1632e', fontFamily: '\'Press Start 2P\', serif' });
-      if(isHost) {
-          self.socket.emit('changeGameManager', gameManager);
+      if(!Object.keys(gameManager.players).includes(playerInfo.playerId)) {
+        const otherPlayer = self.physics.add.image(playerInfo.x, playerInfo.y, 'otherShip').setOrigin(0.5, 0.5).setDisplaySize(135 / scale, 90 / scale);
+        otherPlayer.playerId = playerInfo.playerId;
+        self.otherPlayers.add(otherPlayer);
+        self.playerGroup.add(otherPlayer);
+        var playerNum = (Object.keys(gameManager.players).length + 1);
+        gameManager.players[otherPlayer.playerId] = { score: 0, name: "Player " + playerNum, lives: 3, isAlive: true };
+        gameManager.scoreTexts[otherPlayer.playerId] = self.add.text(16, 64 + (16 * Object.keys(gameManager.scoreTexts).length),gameManager.players[otherPlayer.playerId].name + ": 0", { fontSize: '16px', fill: '#f1632e', fontFamily: '\'Press Start 2P\', serif' });
+        if(isHost) {
+            self.socket.emit('changeGameManager', gameManager);
+        }
       }
     }
   }
@@ -925,7 +927,6 @@ export class Game extends Component {
   render() {
     return (
       <div className="phaser-div">
-        {console.log(this.props.socket)}
         <div id="phaser-game"></div>
         <Nav />
       </div>

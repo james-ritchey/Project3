@@ -20,6 +20,19 @@ class RoomTable extends Component {
         this.setState({ gameIdList: gameList });
       });
 
+      this.state.socket.on('roomRemove', (gameId) => {
+        let gameList = this.state.gameIdList;
+        let updatedList = gameList.filter(id => id !== gameId);
+        this.setState({ gameIdList: updatedList });
+      });
+
+      this.state.socket.emit('roomRequest');
+
+      this.state.socket.on('roomResponse', (roomList) => {
+        
+        this.setState({ gameIdList: roomList });
+      })
+
     }
 
     createGameList = () => {

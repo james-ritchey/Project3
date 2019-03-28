@@ -17,6 +17,18 @@ var sockets = function(socket, io) {
     score: 0,
   };
 
+  socket.on('roomRequest', function() {
+    //map all the roomids to an array
+    let ids = Object.keys(players).map(player => players[player].roomId)
+    //filter through the array to remove undefined values
+    let cleanedIds = ids.filter(ids => ids !== undefined);
+    //Use set to only have access to unique values
+    let roomIds = [...new Set(cleanedIds)];
+
+    io.to(socket.id).emit('roomResponse', roomIds)
+  });
+
+
 
 
   // createGame event received from frontend.
@@ -43,10 +55,7 @@ var sockets = function(socket, io) {
       games[gameId].players[socket.id] = {
         player: players[socket.id]
       };
-      console.log("Current Players object contents:");
-      console.log(players);
-      console.log("contents of player object who created game:");
-      console.log(players[socket.id]);
+
       // emit a 'gameCreated' event to connected frontend clients in order to display the game lobby to all connected users
 
       // emit a 'thisGameCreated' event to the frontend that created the game so they can be added to that game instances' player list.
@@ -78,8 +87,7 @@ var sockets = function(socket, io) {
       // bring in the separate sockets file for phaser socket stuff
       // emit 'gameJoined' event to frontend clients still in the lobby.
       socket.to('lobby').emit('gameJoined');
-      console.log("Join id")
-      console.log(players[socket.id])
+
       // emit 'currentGameJoin' event to other players in an existing game session so they can add that player to their game instances' list of connected players on the client.
       // io.in(data.gameId).emit('currentGameJoin', {
       //   player: players[socket.id],
@@ -106,30 +114,61 @@ var sockets = function(socket, io) {
   socket.on('disconnect', function () {
     console.log('user disconnected\n');
     //If the disconnecting player was the host, find a new one
+
+    //Check to see if player is last with roomId
+
+
+
+    let roomId = players[socket.id].roomId;
+
     if(players[socket.id].isHost ) {
       // remove this player from our players object
+
+      //New lobby system we don't want to delete just remove from game players list
       delete players[socket.id];
+
       //Only chooses a new host if there's a connected player
-      if(Object.keys(players).length > 0) {
+
+      //List of players in room
+      let playerList = [];
+      for(let player in players) {
+        if(players[player].roomId === roomId) {
+          playerList.push(players[player]);
+        }
+      }
+
+      if(playerList.length > 0) {
         //Randomly choose a new host and change the isHost value to 'true'
-        var playerKeys = Object.keys(players);
-        var newHostIndex = Math.floor(Math.random() * playerKeys.length);
-        players[playerKeys[newHostIndex]].isHost = true;
+        //var playerKeys = Object.keys(players);
+        var newHostIndex = Math.floor(Math.random() * playerList.length);
+
+        players[playerList[newHostIndex].playerId].isHost = true;
         //scores.host = playerKeys[newHostIndex];
         //Emit the new host data to the remaining players
-        io.to(players[socket.id].roomId).emit('scoreUpdate');
-        io.to(players[socket.id].roomId).emit('hostAssigned', players[playerKeys[newHostIndex]]);
+        io.to(roomId).emit('scoreUpdate');
+        io.to(roomId).emit('hostAssigned', players[playerList[newHostIndex].playerId]);
         console.log("\nNew Host is being Selected\n");
       }
     }
     else {
-      // remove this player from our players object
+      //delete player object
       delete players[socket.id];
+
     }
     if(Object.keys(players).length <= 0) {
       enemyStates = {};
     }
+    //Remove the roomid from the socket
+    socket.leave(roomId);
+    socket.join("lobby");
+    let remaining = Object.keys(players).filter((player) => players[player].roomId === roomId);
+    
+    if(remaining.length === 0) {
+      io.to('lobby').emit('roomRemove', roomId);
+    }
+    //Add socket back to lobby
     // emit a message to all players to remove this player
+    console.log(players);
     io.emit('disconnect', socket.id);
   });
 
@@ -169,7 +208,6 @@ var sockets = function(socket, io) {
   });
 
   socket.on('changeGameManager', function(data) {
-    console.log("Sending GameManager");
     socket.to(players[socket.id].roomId).emit('updateGameManager', data);
   });
 
