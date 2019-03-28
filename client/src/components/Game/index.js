@@ -139,7 +139,7 @@ export class Game extends Component {
               }
 
               if (Object.keys(gameManager.players).length > 1) {
-                this.socket.emit('gameFull', {
+                self.socket.emit('gameFull', {
                   gameId: data.gameId
                 })
               }

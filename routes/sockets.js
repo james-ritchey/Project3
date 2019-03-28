@@ -67,7 +67,7 @@ var sockets = function(socket, io) {
         }
       }
       // send the players object to the new player
-      setTimeoutPromise(2000).then(() => {
+      setTimeoutPromise(0500).then(() => {
         io.in(players[socket.id].roomId).emit('currentPlayers', {
           playerList: playerList,
           gameId: gameId
@@ -106,7 +106,7 @@ var sockets = function(socket, io) {
           playerList.push(players[player]);
         }
       }
-      setTimeoutPromise(2000).then(() => {
+      setTimeoutPromise(0500).then(() => {
         io.in(players[socket.id].roomId).emit('currentPlayers', {
           playerList: playerList,
           gameId: data.gameId
