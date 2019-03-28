@@ -3,16 +3,15 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const routes = require('./routes');
 const session = require('express-session');
-
 const PORT = process.env.PORT || 4000;
-
-
 const app = express();
 
 const mongoDB = process.env.MONGODB_URI || 'mongodb://127.0.0.1/project3';
 mongoose.connect(mongoDB, { useNewUrlParser: true });
 mongoose.Promise = global.Promise;
 const db = mongoose.connection;
+
+let players = {};
 
 app.use(session({
   secret: 'ldjaisudnjdkalnasdfwpienlakjs',
@@ -28,7 +27,9 @@ else {
 }
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header("Access-Control-Allow-Headers", "X-Requested-With");
+  res.header("Access-Control-Allow-Headers", "Content-Type");
+  res.header("Access-Control-Allow-Methods", "PUT, GET, POST, DELETE, OPTIONS");
   next();
 });
 app.use(express.urlencoded({ extended: false }));
@@ -43,9 +44,10 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 require('./config/passport.js')(passport);
 
 var server = require('http').Server(app);
-
-var io = require('socket.io').listen(server);
+var io = require('socket.io').listen(server, { origins : '*:*'});
 io.on("connection", (socket) => {
+  console.log("Hello")
+  socket.join('lobby');
   require('./routes/sockets')(socket, io);
 })
 

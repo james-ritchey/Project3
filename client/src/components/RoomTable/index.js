@@ -1,25 +1,60 @@
 import React, { Component } from "react";
-import { Link } from "react-router-dom";
+import { Link, Redirect } from "react-router-dom";
+import { createDecipher } from "crypto";
 
 
 class RoomTable extends Component {
+
+    constructor(props) {
+      super(props);
+      this.state = {
+        socket: this.props.socket,
+        gameIdList: [],
+        gameCreator: false,
+        playerId: null,
+        players: {}
+      }
+      this.state.socket.on('gameCreated', ({gameId}) => {
+        let gameList = this.state.gameIdList;
+        gameList.push(gameId);
+        this.setState({ gameIdList: gameList });
+      });
+
+      this.state.socket.on('roomRemove', (gameId) => {
+        let gameList = this.state.gameIdList;
+        let updatedList = gameList.filter(id => id !== gameId);
+        this.setState({ gameIdList: updatedList });
+      });
+
+      this.state.socket.emit('roomRequest');
+
+      this.state.socket.on('roomResponse', (roomList) => {
+        
+        this.setState({ gameIdList: roomList });
+      })
+
+    }
+
+    createGameList = () => {
+      let htmlArray = [];
+      for(let i = 0; i < this.state.gameIdList.length; i++) {
+        htmlArray.push(<li><Link to={{ pathname: '/game', state: { host: false, gameId: this.state.gameIdList[i] } }}>Room {this.state.gameIdList[i]}</Link></li>)
+      }
+
+      return htmlArray;
+    }
     
     render() {
         return (
             <div>
                 <h3>Lobby</h3>
                 <ul>
-                <li><Link to={{ pathname: '/game/1', state: { users: this.props.user } }}>Room 1</Link></li>
-                <li><Link to={{ pathname: '/game/2', state: { users: this.props.user } }}>Room 2</Link></li>
-                <li><Link to={{ pathname: '/game/3', state: { users: this.props.user } }}>Room 3</Link></li>
-                <li><Link to={{ pathname: '/game/4', state: { users: this.props.user } }}>Room 4</Link></li>
-                <li><Link to={{ pathname: '/game/5', state: { users: this.props.user } }}>Room 5</Link></li>
-                <li><Link to={{ pathname: '/game/6', state: { users: this.props.user } }}>Room 6</Link></li>
-                <li><Link to={{ pathname: '/game/7', state: { users: this.props.user } }}>Room 7</Link></li>
-                <li><Link to={{ pathname: '/game/8', state: { users: this.props.user } }}>Room 8</Link></li>
-                <li><Link to={{ pathname: '/game/9', state: { users: this.props.user } }}>Room 9</Link></li>
-                <li><Link to={{ pathname: '/game/10', state: { users: this.props.user } }}>Room 10</Link></li>
+                  {this.createGameList()}
                 </ul>
+                <Link to={{pathname: '/game', state: { host: true }}}>
+                  Test
+                </Link>
+
             </div>
         )
     }

@@ -10,7 +10,6 @@ class HighScoreTable extends Component {
 
   componentDidMount() {
     User.hiscores(10, (res) => {
-      console.log("here");
       this.setState({ hiscoreList: res.data })
     })
   }
@@ -34,7 +33,6 @@ class HighScoreTable extends Component {
   render() {
     return (
       <div>
-        {console.log("render")}
         <h3>High Scores</h3>
         <ul>
           {this.hiscoreList()}

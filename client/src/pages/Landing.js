@@ -4,6 +4,7 @@ import voyagerLogo from '../img/voyager_logo.svg';
 import coverShip from '../img/cover_ship.svg';
 import enterNav from "../img/enter_nav.svg";
 import Form from "../components/Form";
+import Nav from "../components/Nav/index";
 import { Redirect } from 'react-router-dom';
 
 import "./Landing.css";
