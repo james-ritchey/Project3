@@ -20,7 +20,7 @@ class App extends Component {
       username: "",
       
     },
-    socket: openSocket('http://localhost:4000')
+    socket: openSocket()
   }
 
   onLogin = (event) => {

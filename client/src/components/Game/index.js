@@ -246,16 +246,16 @@ export class Game extends Component {
       });
 
       this.socket.on('updateEnemyState', function(enemyData) {
-          if(!isHost) {
-              enemies.getChildren()[enemyData.id].setState(enemyData);
-            //   var enemyArray = enemies.getChildren();
+          // if(!isHost) {
+          //     enemies.getChildren()[enemyData.id].setState(enemyData);
+          //   //   var enemyArray = enemies.getChildren();
 
-            //   enemyArray.forEach(function(enemy) {
-            //       if(enemy.id === enemyData.id) {
-            //           enemy.setState(enemyData);
-            //       }
-            //   });
-          }
+          //   //   enemyArray.forEach(function(enemy) {
+          //   //       if(enemy.id === enemyData.id) {
+          //   //           enemy.setState(enemyData);
+          //   //       }
+          //   //   });
+          // }
 
       });
 

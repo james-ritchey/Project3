@@ -232,7 +232,9 @@ var sockets = function(socket, io) {
   socket.on('changeGameManager', function(data) {
     socket.to(players[socket.id].roomId).emit('updateGameManager', data);
   });
-
+  socket.on('newRound', function() {
+    socket.to(players[socket.id].roomId).emit('hostNewRound');
+  });
   socket.on('restartGame', function() {
     socket.to(players[socket.id].roomId).emit('restartGame');
   });
