@@ -14,6 +14,7 @@ var sockets = function(socket, io) {
     y: 600 - 64,
     playerId: socket.id,
     isHost: false,
+    score: 0,
   };
 
 
@@ -62,7 +63,7 @@ var sockets = function(socket, io) {
       });
       
       // send the current scores
-      io.in(players[socket.id].roomId).emit('scoreUpdate');
+      socket.in(players[socket.id].roomId).emit('scoreUpdate');
       // update all other players of the new player
     });
 
@@ -76,7 +77,7 @@ var sockets = function(socket, io) {
       socket.leave('lobby');
       // bring in the separate sockets file for phaser socket stuff
       // emit 'gameJoined' event to frontend clients still in the lobby.
-      io.to('lobby').emit('gameJoined');
+      socket.to('lobby').emit('gameJoined');
       console.log("Join id")
       console.log(players[socket.id])
       // emit 'currentGameJoin' event to other players in an existing game session so they can add that player to their game instances' list of connected players on the client.
@@ -142,19 +143,19 @@ var sockets = function(socket, io) {
 
   //When a player fires, emit the fire location to the other players
   socket.on('playerFire', function(data) {
-    io.to(players[socket.id].roomId).emit('playerFired', data)
+    socket.to(players[socket.id].roomId).emit('playerFired', data)
   });
 
   //When an enemy fires, emit the fire location to the other players
   socket.on('enemyShoot', function(data) {
-    io.to(players[socket.id].roomId).emit('enemyFired', data)
+    socket.to(players[socket.id].roomId).emit('enemyFired', data)
   });
 
   //When a player hits an enemy, emit this to the other players
   socket.on('enemyHit', function(data){
     //console.log(data);
     //delete enemyStates[data.enemyId];
-    io.to(players[socket.id].roomId).emit('hitEnemy', data);
+    socket.to(players[socket.id].roomId).emit('hitEnemy', data);
   });
 
   //When the client loads the required fonts, send the client the required score data
@@ -164,29 +165,29 @@ var sockets = function(socket, io) {
 
   socket.on('enemyState', function(enemyData) {
     //enemyStates[enemyData.id] = enemyData;
-    io.to(players[socket.id].roomId).emit('updateEnemyState', enemyData);
+    socket.to(players[socket.id].roomId).emit('updateEnemyState', enemyData);
   });
 
   socket.on('changeGameManager', function(data) {
     console.log("Sending GameManager");
-    io.to(players[socket.id].roomId).emit('updateGameManager', data);
-  })
-  }
+    socket.to(players[socket.id].roomId).emit('updateGameManager', data);
+  });
 
-socket.on('restartGame', function() {
-  socket.broadcast.emit('restartGame');
-});
-socket.on('playerKilled', function(player) {
-  socket.broadcast.emit('killPlayer', player);
-});
-socket.on('gameOver', function() {
-  socket.broadcast.emit('endGame');
-});
-socket.on('playerHit', function(data) {
-  socket.broadcast.emit('hitPlayer', data);
-});
+  socket.on('restartGame', function() {
+    socket.to(players[socket.id].roomId).emit('restartGame');
+  });
+  socket.on('playerKilled', function(player) {
+    socket.to(players[socket.id].roomId).emit('killPlayer', player);
+  });
+  socket.on('gameOver', function() {
+    socket.to(players[socket.id].roomId).emit('endGame');
+  });
+  socket.on('playerHit', function(data) {
+    socket.to(players[socket.id].roomId).emit('hitPlayer', data);
+  });
+}
 
 //End of the sockets
-}
+
 
 module.exports = sockets;

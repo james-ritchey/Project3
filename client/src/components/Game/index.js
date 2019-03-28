@@ -10,7 +10,7 @@ export class Game extends Component {
       socket: this.props.socket,
       gameIdList: [],
       gameCreator: false,
-      players: {}
+      players: {},
     }
 
     if(this.props.host === true) {
@@ -91,21 +91,21 @@ export class Game extends Component {
       link.href = 'https://fonts.googleapis.com/css?family=Press+Start+2P';
       head.appendChild(link);
       //Load the required image assets into the engine
-      this.load.image('ship', 'assets/player1.png');
-      this.load.image('otherShip', 'assets/player2.png');
-      this.load.image('enemy', 'assets/enemy1.png');
-      this.load.image('bullet', 'assets/bullet_player.png');
-      this.load.image('enemyBullet', 'assets/bullet_enemy.png');
-      this.load.image('background', 'assets/voyager_game_bg.png');
-      this.load.image('stars1', "assets/voyager_game_stars1.png");
-      this.load.image('stars2', "assets/voyager_game_stars2.png");
-      this.load.image('enemyParticles', 'assets/enemy_particle.png');
-      this.load.image('playerParticles', 'assets/player_particle.png');
-      this.load.image('restartButton', 'assets/restart_btn.png');
+      this.load.image('ship', 'game/assets/player1.png');
+      this.load.image('otherShip', 'game/assets/player2.png');
+      this.load.image('enemy', 'game/assets/enemy1.png');
+      this.load.image('bullet', 'game/assets/bullet_player.png');
+      this.load.image('enemyBullet', 'game/assets/bullet_enemy.png');
+      this.load.image('background', 'game/assets/voyager_game_bg.png');
+      this.load.image('stars1', "game/assets/voyager_game_stars1.png");
+      this.load.image('stars2', "game/assets/voyager_game_stars2.png");
+      this.load.image('enemyParticles', 'game/assets/enemy_particle.png');
+      this.load.image('playerParticles', 'game/assets/player_particle.png');
+      this.load.image('restartButton', 'game/assets/restart_btn.png');
 
-      this.load.audio('playerShoot', 'assets/player_shoot.mp3');
-      this.load.audio('playerDeath', 'assets/player_death.mp3');
-      this.load.audio('enemyDeath', 'assets/enemy_death.mp3');
+      this.load.audio('playerShoot', 'game/assets/player_shoot.mp3');
+      this.load.audio('playerDeath', 'game/assets/player_death.mp3');
+      this.load.audio('enemyDeath', 'game/assets/enemy_death.mp3');
     }
 
     var bullets = null;
@@ -223,6 +223,7 @@ export class Game extends Component {
       });
 
       this.socket.on('hitEnemy', function(data){
+          console.log("This is the 'hitEnemy' phaser event being executed on this client!");
           enemies.getChildren()[data.enemyId].hit(data.playerId);
       });
 
@@ -361,7 +362,7 @@ export class Game extends Component {
           update: function (time, delta){
               if(isHost) {
                   if(this.isAlive) {
-                      if(this.group[this.group.length - 1].x > config.width - 50 || this.x > config.width - 50) {
+                      if(this.group[0].x > config.width - 50 || this.x > config.width - 50) {
                           this.direction = -1;
                           this.body.setVelocityX(this.speed * this.direction);
                       }
@@ -385,7 +386,6 @@ export class Game extends Component {
                       this.body.setVelocityX(0);
                       this.body.setVelocityY(0);
                   }
-
                   var state = {
                       id: this.id,
                       x: this.x,
@@ -407,7 +407,13 @@ export class Game extends Component {
               if(isHost) {
                   this.isAlive = false;
                   this.setPosition(400, -100);
+                  console.log("Enemy hit.  Value of this.group before splice:");
+                  console.log(this.group);
                   this.group.splice(this.group.indexOf(this), 1);
+                  console.log("After splice:");
+                  console.log(this.group);
+                  console.log("playerId in this function's scope:");
+                  console.log(playerId);
                   gameManager.enemies.dead[this.row].push(this);
                   if(this.group.length <= 0 && gameManager.spawnedRows !== gameManager.round) {
                       spawnRow(this.row);
@@ -526,7 +532,7 @@ export class Game extends Component {
           bullet.destroy();
           self.socket.emit('enemyHit', { enemyId: enemy.id, playerId: bullet.playerId });
           //self.socket.emit('enemyState', {id: this.id, kill: true});
-          
+          console.log("Here is the enemyHit function being executed on this client!");
           enemy.hit(bullet.playerId);
       };
 
