@@ -138,7 +138,7 @@ export class Game extends Component {
                   addOtherPlayers(self, data.playerList[id]);
               }
 
-              if (Object.keys(gameManager.players).length > 2) {
+              if (Object.keys(gameManager.players).length > 1) {
                 this.socket.emit('gameFull', {
                   gameId: data.gameId
                 })

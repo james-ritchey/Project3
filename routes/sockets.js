@@ -68,7 +68,10 @@ var sockets = function(socket, io) {
       }
       // send the players object to the new player
       setTimeoutPromise(2000).then(() => {
-        io.in(players[socket.id].roomId).emit('currentPlayers', playerList);
+        io.in(players[socket.id].roomId).emit('currentPlayers', {
+          playerList: playerList,
+          gameId: gameId
+        });
       });
       
       // send the current scores
@@ -111,7 +114,6 @@ var sockets = function(socket, io) {
       });
       // send the current scores
       io.in(players[socket.id].roomId).emit('scoreUpdate');
-      // update all other players of the new player
     });
 
   socket.on('gameFull', function(data){
